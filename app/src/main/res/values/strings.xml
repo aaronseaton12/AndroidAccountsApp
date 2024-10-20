@@ -1,0 +1,15 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name">Accounts</string>
+    <string name="home_page_title">Receipt Book Home</string>
+    <string name="home_welcome">Welcome</string>
+
+    <string name="notification_title" tools:ignore="MissingTranslation">Task Added or Changed</string>
+    <string name="notification_text" translatable="false">A task was added!!</string>
+
+    <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
+    <string name="default_notification_channel_name" translatable="false">Default</string>
+
+    <string name="task_notification_channel_id" translatable="false">task_channel</string>
+    <string name="task_notification_channel_name" translatable="false">Tasks</string>
+
+</resources>

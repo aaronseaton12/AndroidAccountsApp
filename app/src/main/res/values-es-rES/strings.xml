@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Accounts</string>
+    <string name="home_page_title">Libro De Recibos</string>
+    <string name="home_welcome">Bienvenido</string>
+</resources>
