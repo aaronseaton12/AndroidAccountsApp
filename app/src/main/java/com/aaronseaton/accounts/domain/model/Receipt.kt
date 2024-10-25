@@ -4,14 +4,15 @@ import com.google.firebase.firestore.DocumentId
 import java.util.*
 
 data class Receipt(
-    override val paymentID: String = "",
+    override val id: String = "",
     override val date: Date = Calendar.getInstance().time,
     override val amount: Double = 0.0,
     override val customerID: String = "",
     @DocumentId
     override val documentID: String = "",
     override val reason: String? = null,
-    override val payMethod: String? = null
+    override val payMethod: String? = null,
+    override val matter: String? = null
 ) : FinancialTransaction, FirebaseEntity {
     private fun String.newLine(string: String): String {
         return this + "\n" + string
@@ -22,7 +23,7 @@ data class Receipt(
     }
 
     override fun toString(): String {
-        return paymentID
+        return id
             .newLine(amount.toString())
             .newLine(date.toString())
             .newLine(customerID)

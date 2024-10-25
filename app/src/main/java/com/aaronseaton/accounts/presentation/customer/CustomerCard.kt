@@ -29,18 +29,19 @@ fun CustomerCard(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(vertical = 2.dp)
             .clickable {
                 println("Sending Customer ${customer.documentID}")
                 navigateTo(Routes.INDIVIDUAL_CUSTOMER + "/${customer.documentID}")
             },
-        tonalElevation = 0.dp
+        tonalElevation = 0.05.dp
     ) {
         Column(Modifier.padding(12.dp)) {
             Text(
                 text = customer.fullName(),
                 modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Left
             )
             Text(
@@ -67,7 +68,7 @@ fun CustomerCard(
             //Spacer(modifier = Modifier.padding(vertical = 5.dp))
 
         }
-        AccountDivider()
+        //AccountDivider()
     }
 }
 

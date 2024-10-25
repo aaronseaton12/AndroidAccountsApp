@@ -35,4 +35,5 @@ object Constants {
     const val RECEIPTS = "receipts"
     const val PAYMENTS = "payments"
     const val TASKS = "tasks"
+    const val MATTERS = "matters"
 }

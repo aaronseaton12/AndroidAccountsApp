@@ -33,7 +33,7 @@ fun EditUser(
     userID: String,
     viewModel: UserViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsState(UserState(loading = true))
     when (state.loading) {
         true -> LoadingScreen()
         false ->
@@ -138,37 +138,37 @@ private fun EditUserContent(
             onBusinessSelected = onBusinessSelected
         )
 
-        EditOrAddTextField(user.firstName, "First Name") {
+        EditOrAddTextField(name = user.firstName, label = "First Name") {
             onEditTextChange(user.copy(firstName = it))
         }
-        EditOrAddTextField(user.middleName, "Middle Name") {
+        EditOrAddTextField(name = user.middleName, label = "Middle Name") {
             onEditTextChange(user.copy(middleName = it))
         }
-        EditOrAddTextField(user.lastName, "Last Name") {
+        EditOrAddTextField(name = user.lastName, label = "Last Name") {
             onEditTextChange(user.copy(lastName = it))
         }
-        EditOrAddTextField(user.emailAddress, "Email") {
+        EditOrAddTextField(name = user.emailAddress, label = "Email") {
             onEditTextChange(user.copy(emailAddress = it))
         }
-        EditOrAddTextField(user.address.addressLine1, "Address Line 1") {
+        EditOrAddTextField(name = user.address.addressLine1, label = "Address Line 1") {
             onEditTextChange(user.copy(address = user.address.copy(addressLine1 = it)))
         }
-        EditOrAddTextField(user.address.addressLine2, "Address Line 2") {
+        EditOrAddTextField(name = user.address.addressLine2, label = "Address Line 2") {
             onEditTextChange(user.copy(address = user.address.copy(addressLine2 = it)))
         }
-        EditOrAddTextField(user.address.city, "City") {
+        EditOrAddTextField(name = user.address.city, label = "City") {
             onEditTextChange(user.copy(address = user.address.copy(city = it)))
         }
-        EditOrAddTextField(user.address.country, "Country") {
+        EditOrAddTextField(name = user.address.country, label = "Country") {
             onEditTextChange(user.copy(address = user.address.copy(country = it)))
         }
-        EditOrAddTextField(user.phoneNumber.cellNumber, "Cell Number") {
+        EditOrAddTextField(name = user.phoneNumber.cellNumber, label = "Cell Number") {
             onEditTextChange(user.copy(phoneNumber = user.phoneNumber.copy(cellNumber = it)))
         }
-        EditOrAddTextField(user.phoneNumber.homeNumber, "Home Number") {
+        EditOrAddTextField(name = user.phoneNumber.homeNumber, label = "Home Number") {
             onEditTextChange(user.copy(phoneNumber = user.phoneNumber.copy(homeNumber = it)))
         }
-        EditOrAddTextField(user.phoneNumber.workNumber, "Work Number") {
+        EditOrAddTextField(name = user.phoneNumber.workNumber, label = "Work Number") {
             onEditTextChange(user.copy(phoneNumber = user.phoneNumber.copy(workNumber = it)))
         }
         ClickableTextField(

@@ -1,38 +1,51 @@
 package com.aaronseaton.accounts.presentation.task
 
 import android.util.Log
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.aaronseaton.accounts.domain.model.Sorting
 import com.aaronseaton.accounts.domain.model.Task
-import com.aaronseaton.accounts.domain.model.TaskSorting
 import com.aaronseaton.accounts.domain.model.User
-import com.aaronseaton.accounts.util.Routes
-import com.aaronseaton.accounts.util.Util.Companion.prettyDateFormatter
 import com.aaronseaton.accounts.presentation.components.AccountDivider
 import com.aaronseaton.accounts.presentation.components.AllBottomBar
 import com.aaronseaton.accounts.presentation.components.LoadingScreen
+import com.aaronseaton.accounts.util.Routes
 
-private val TAG = "TaskList"
+private const val TAG = "TaskList"
 
 @Composable
 fun ListOfTasks(
     navigateTo: (String) -> Unit,
-    viewModel: TaskListViewModel = hiltViewModel()
+    viewModel: TasksViewModel = hiltViewModel()
 ) {
     Log.d(TAG, "List of Tasks")
-    val state by viewModel.taskList.collectAsState()
+    val state by viewModel.state.collectAsState(TaskListScreenState())
     ListOfTasksImpl(
         state,
         navigateTo,
@@ -44,13 +57,13 @@ fun ListOfTasks(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListOfTasksImpl(
-    state: TaskListModel,
+    state: TaskListScreenState,
     navigateTo: (String) -> Unit,
     updateTask: (Task) -> Unit,
-    changeSorting: (TaskSorting) -> Unit
+    changeSorting: (Sorting.TaskSorting) -> Unit
 ) {
     Log.d(TAG, "List of Tasks Impl")
-    val icon = Icons.Default.ArrowBack
+    val icon = Icons.AutoMirrored.Filled.ArrowBack
     val onPressed = { navigateTo(Routes.HOME) }
     val description = "Home"
     val title = "Task List"
@@ -81,15 +94,15 @@ fun ListOfTasksImpl(
                         ) {
                             DropdownMenuItem(
                                 text = { Text("Sort By Date") },
-                                onClick = { changeSorting(TaskSorting.BY_DUE_DATE) }
+                                onClick = { changeSorting(Sorting.TaskSorting.BY_DUE_DATE) }
                             )
                             DropdownMenuItem(
                                 text = { Text("Sort By Assigned To") },
-                                onClick = { changeSorting(TaskSorting.BY_ASSIGNED_TO) }
+                                onClick = { changeSorting(Sorting.TaskSorting.BY_ASSIGNED_TO) }
                             )
                             DropdownMenuItem(
                                 text = { Text("Sort By Priority") },
-                                onClick = { changeSorting(TaskSorting.BY_PRIORITY) }
+                                onClick = { changeSorting(Sorting.TaskSorting.BY_PRIORITY) }
                             )
                         }
 
@@ -123,7 +136,7 @@ fun ListOfTasksImpl(
 @Composable
 fun ListOfTasksContent(
     tasks: List<Task>,
-    sorting: TaskSorting,
+    sorting: Sorting.TaskSorting,
     users: List<User>,
     navigateTo: (String) -> Unit,
     updateTask: (Task) -> Unit,
@@ -131,13 +144,13 @@ fun ListOfTasksContent(
 ) {
     Log.d(TAG, "List of Tasks Content")
     val sortedTasks = when (sorting) {
-        TaskSorting.BY_DUE_DATE -> tasks.sortedBy { it.dueDate }
-        TaskSorting.BY_ASSIGNED_TO -> tasks.sortedBy { task ->
+        Sorting.TaskSorting.BY_DUE_DATE -> tasks.sortedBy { it.dueDate }
+        Sorting.TaskSorting.BY_ASSIGNED_TO -> tasks.sortedBy { task ->
             task.assignedTo.let { id ->
                 users.single { it.documentID == id }
             }.firstName
         }
-        TaskSorting.BY_PRIORITY -> tasks //tasks.sortedBy { it.priority }.reversed()
+        Sorting.TaskSorting.BY_PRIORITY -> tasks //tasks.sortedBy { it.priority }.reversed()
     }
 
     val completedTasks = sortedTasks.filter { it.done }
@@ -170,72 +183,3 @@ fun ListOfTasksContent(
     }
 }
 
-@Composable
-fun TaskCard(
-    task: Task,
-    user: User = User(),
-    navigateTo: (String) -> Unit,
-    updateTask: (Task) -> Unit
-) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { navigateTo(Routes.INDIVIDUAL_TASK + "/" + task.documentID) },
-        tonalElevation = 0.dp
-    ) {
-        Row {
-            RadioButton(
-                selected = task.done,
-                onClick = { updateTask(task.copy(done = !task.done)) })
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(15.dp)
-            ) {
-                Text(
-                    text = task.name,
-                    modifier = Modifier.fillMaxWidth(),
-                    style = if (!task.done) MaterialTheme.typography.titleMedium else
-                        MaterialTheme.typography.titleMedium.copy(
-                            textDecoration = TextDecoration.LineThrough,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f)
-                        )
-                )
-                Text(
-                    text = task.description,
-                    modifier = Modifier.fillMaxWidth(),
-                    style = if (!task.done) MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-                    ) else
-                        MaterialTheme.typography.bodyMedium.copy(
-                            textDecoration = TextDecoration.LineThrough,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f)
-                        )
-                )
-                Text(
-                    text = prettyDateFormatter.format(task.dueDate),
-                    modifier = Modifier.fillMaxWidth(),
-                    style = if (!task.done) MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.primary
-                    ) else
-                        MaterialTheme.typography.bodyMedium.copy(
-                            textDecoration = TextDecoration.LineThrough,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f)
-                        )
-                )
-                Text(
-                    text = "Assigned To: ${user.fullName}",
-                    modifier = Modifier.fillMaxWidth(),
-                    style = if (!task.done) MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-                    ) else
-                        MaterialTheme.typography.bodyMedium.copy(
-                            textDecoration = TextDecoration.LineThrough,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f)
-                        )
-                )
-            }
-        }
-        AccountDivider()
-    }
-}

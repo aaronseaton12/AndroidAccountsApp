@@ -37,8 +37,8 @@ fun LoginScreen(
     loginViewModel: LoginViewModel = viewModel()
 ) {
     val launcher =
-        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(it.data)
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result->
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
             task.addOnSuccessListener { googleSignInAccount ->
                 val credential = GoogleAuthProvider.getCredential(googleSignInAccount.idToken, null)
                 loginViewModel.signWithCredential(credential)
@@ -46,14 +46,15 @@ fun LoginScreen(
                 Log.e("TAG", "Google sign in failed", exception)
             }
         }
+
     val context = LocalContext.current
     val token = stringResource(id = R.string.web_client_id)
-    val googleSignInClient = GoogleSignIn.getClient(
-        context, GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(token)
-            .requestEmail()
-            .build()
-    )
+
+    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        .requestIdToken(token)
+        .requestEmail()
+        .build()
+    val googleSignInClient = GoogleSignIn.getClient( context, gso )
     val signInLauncher = {
         launcher.launch(googleSignInClient.signInIntent).also {
             Log.d(TAG, "Sign In Launcher()")

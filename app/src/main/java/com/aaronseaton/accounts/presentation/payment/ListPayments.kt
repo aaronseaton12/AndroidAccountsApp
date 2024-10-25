@@ -17,12 +17,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.aaronseaton.accounts.domain.model.Business
 import com.aaronseaton.accounts.domain.model.Customer
 import com.aaronseaton.accounts.domain.model.Payment
-import com.aaronseaton.accounts.domain.model.TransactionSorting
+import com.aaronseaton.accounts.domain.model.Sorting
 import com.aaronseaton.accounts.domain.model.User
 import com.aaronseaton.accounts.util.Routes
 import com.aaronseaton.accounts.presentation.components.AllBottomBar
 import com.aaronseaton.accounts.presentation.components.LoadingScreen
-import com.aaronseaton.accounts.presentation.components.TransactionCardTwo
+import com.aaronseaton.accounts.presentation.components.TransactionCard
 
 
 @Composable
@@ -31,7 +31,7 @@ fun ListOfPayments(
     viewModel: PaymentViewModels = hiltViewModel()
 ) {
     //viewModel.updatePaymentState()
-    val state by viewModel.paymentState.collectAsState()
+    val state by viewModel.state.collectAsState(initial = PaymentListState())
 
     ListOfPaymentImpl(
         navigateTo,
@@ -44,7 +44,7 @@ fun ListOfPayments(
 @Composable
 fun ListOfPaymentImpl(
     navigateTo: (String) -> Unit,
-    changeSorting: (TransactionSorting) -> Unit,
+    changeSorting: (Sorting.TransactionSorting) -> Unit,
     state: PaymentListState,
 ) {
     val icon = Icons.Default.ArrowBack
@@ -75,15 +75,15 @@ fun ListOfPaymentImpl(
                         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                             DropdownMenuItem(
                                 text = { Text("Sort By Date") },
-                                onClick = { changeSorting(TransactionSorting.BY_DATE) }
+                                onClick = { changeSorting(Sorting.TransactionSorting.BY_DATE) }
                             )
                             DropdownMenuItem(
                                 text = { Text("Sort By Customer") },
-                                onClick = { changeSorting(TransactionSorting.BY_CUSTOMER_FIRSTNAME) }
+                                onClick = { changeSorting(Sorting.TransactionSorting.BY_CUSTOMER_FIRSTNAME) }
                             )
                             DropdownMenuItem(
                                 text = { Text("Sort By Value") },
-                                onClick = { changeSorting(TransactionSorting.BY_VALUE) }
+                                onClick = { changeSorting(Sorting.TransactionSorting.BY_VALUE) }
                             )
                         }
                     }
@@ -92,7 +92,6 @@ fun ListOfPaymentImpl(
         },
         bottomBar = { AllBottomBar(navigateTo, Routes.PAYMENT_LIST) },
         floatingActionButton = {
-
             ExtendedFloatingActionButton(
                 text = { Text("Add Expense") },
                 icon = { Icon(Icons.Default.Add, "Add Expense") },
@@ -118,7 +117,7 @@ fun ListOfPaymentImpl(
 @Composable
 fun OutputAreaPayments(
     navigateTo: (String) -> Unit,
-    sorting: TransactionSorting,
+    sorting: Sorting.TransactionSorting,
     payments: List<Payment>,
     customers: List<Customer>,
     accountUser: User,
@@ -126,19 +125,19 @@ fun OutputAreaPayments(
     modifier: Modifier
 ) {
     val filteredPayments = when (sorting) {
-        TransactionSorting.BY_DATE -> payments.sortedBy { it.date }.reversed()
-        TransactionSorting.BY_CUSTOMER_FIRSTNAME -> payments.sortedBy { payment ->
+        Sorting.TransactionSorting.BY_DATE -> payments.sortedBy { it.date }.reversed()
+        Sorting.TransactionSorting.BY_CUSTOMER_FIRSTNAME -> payments.sortedBy { payment ->
             payment.customerID.let { id ->
                 customers.single { it.documentID == id }
             }.firstName
         }
-        TransactionSorting.BY_VALUE -> payments.sortedBy { it.amount }.reversed()
+        Sorting.TransactionSorting.BY_VALUE -> payments.sortedBy { it.amount }.reversed()
     }
 
     LazyColumn(contentPadding = PaddingValues(bottom = 150.dp), modifier = modifier) {
         items(filteredPayments) { payment ->
 
-            TransactionCardTwo(
+            TransactionCard(
                 transaction = payment,
                 customer = customers.single { it.documentID == payment.customerID },
                 accountUser = accountUser,

@@ -30,6 +30,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+
 import com.aaronseaton.accounts.R
 import com.aaronseaton.accounts.domain.model.Business
 import com.aaronseaton.accounts.domain.model.Response
@@ -38,6 +39,7 @@ import com.aaronseaton.accounts.ui.theme.AccountsTheme
 import com.aaronseaton.accounts.util.Constants
 import com.aaronseaton.accounts.util.Routes
 import com.aaronseaton.accounts.presentation.components.*
+import com.aaronseaton.accounts.presentation.task.TaskIndividualScreenState
 import kotlinx.coroutines.Job
 
 @Composable
@@ -46,8 +48,8 @@ fun IndividualBusiness(
     navigateTo: (String) -> Unit = {},
     viewModel: BusinessViewModel = hiltViewModel()
 ) {
-    viewModel.getBusiness(businessID)
-    val state by viewModel.individualBusinessState.collectAsState()
+    LaunchedEffect(businessID) {viewModel.setBusinessId(businessID)}
+    val state by viewModel.individualState.collectAsState(IndividualBusinessState())
 
     when (state.loading) {
         true -> LoadingScreen()

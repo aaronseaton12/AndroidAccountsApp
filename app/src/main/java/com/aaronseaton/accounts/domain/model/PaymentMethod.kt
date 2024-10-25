@@ -9,6 +9,5 @@ enum class PaymentMethod(val type: String) {
 
     override fun toString(): String {
         return this.type
-
     }
 }

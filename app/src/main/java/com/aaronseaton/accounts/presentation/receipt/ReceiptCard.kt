@@ -1,11 +1,11 @@
 package com.aaronseaton.accounts.presentation.receipt
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -21,17 +21,17 @@ import com.aaronseaton.accounts.domain.model.Customer
 import com.aaronseaton.accounts.domain.model.Receipt
 import com.aaronseaton.accounts.domain.model.TestInfo
 import com.aaronseaton.accounts.domain.model.User
+import com.aaronseaton.accounts.presentation.components.TransactionCard
 import com.aaronseaton.accounts.ui.theme.AccountsTheme
 import com.aaronseaton.accounts.util.Routes
 import com.aaronseaton.accounts.util.Util
-import com.aaronseaton.accounts.presentation.components.AccountDivider
-import com.aaronseaton.accounts.presentation.components.TransactionCard
 
 @Composable
 fun ReceiptCard(
     customer: Customer,
     receipt: Receipt,
-    navigateTo: (String) -> Unit = {}
+    navigateTo: (String) -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
     val (_, date, amount, _) = receipt
     Surface(
@@ -40,8 +40,8 @@ fun ReceiptCard(
             .clickable { navigateTo(Routes.INDIVIDUAL_RECEIPT + "/" + receipt.documentID) },
         tonalElevation = 0.dp
     ) {
-        Column {
-            Row(Modifier.padding(15.dp, 10.dp)) {
+        Column (modifier) {
+            Row {
                 Column(Modifier.fillMaxWidth(0.55f)) {
                     Text(
                         text = "Receipt: ${receipt.documentID.take(4)}",
@@ -74,7 +74,6 @@ fun ReceiptCard(
                 }
             }
         }
-        AccountDivider()
     }
 }
 
@@ -105,124 +104,9 @@ private fun ReceiptCardPreview() {
         TransactionCard(
             transaction = TestInfo.firstReceipt,
             customer = TestInfo.Damian,
-            navigateTo = {},
+            navigateTo = {string-> Log.d(TAG, string)},
             business = Business(),
             accountUser = User()
         )
     }
 }
-
-
-/*
-@Composable
-fun TransactionCard(
-    transaction: FinancialTransaction,
-    customer: Customer,
-    navigateTo: (String) -> Unit = {},
-    saveTransactionAsPDF: () -> Unit = {},
-    modifier: Modifier = Modifier
-) {
-
-    val context = LocalContext.current
-    val transactionName = when (transaction) {
-        is Receipt -> "Receipt"
-        is Payment -> "Payment"
-        else -> "Transaction"
-    }
-    val individualTransactionRoute = when (transaction) {
-        is Receipt -> Routes.INDIVIDUAL_RECEIPT
-        is Payment -> Routes.INDIVIDUAL_PAYMENT
-        else -> "Transaction"
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp)
-            .clickable { navigateTo(individualTransactionRoute + "/" + transaction.documentID) },
-        contentAlignment = Alignment.Center
-    ) {
-        Surface(
-            tonalElevation = 0.dp,
-            shadowElevation = 2.dp,
-            shape = MaterialTheme.shapes.large,
-            border = BorderStroke(Dp.Hairline, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
-        ) {
-            Column(
-                //modifier = Modifier.size(300.dp, 400.dp),
-                verticalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Text(
-                    text = "$transactionName for  ${customer.fullName()}",
-                    textAlign = TextAlign.Justify,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(top = 10.dp, bottom = 10.dp).align(Alignment.CenterHorizontally)
-                )
-                AccountDivider()
-                Column(
-                    horizontalAlignment = Alignment.Start,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 0.dp).fillMaxWidth()
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 10.dp)
-                    ){
-                        TextWithLabel("Amount",Util.decimalFormat.format(transaction.amount))
-                        TextWithLabel("Dated", Util.dateFormatter.format(transaction.date))
-                        TextWithLabel("Method", transaction.payMethod ?: "-")
-                    }
-//                    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-//                        TextWithLabel("Ref#", transaction.documentID.take(4))
-//                    }
-                    TextWithLabel("Reason", transaction.reason ?: "-")
-                }
-
-                //
-                val emailReceipt = {
-                    emailReceipt(
-                        customer,
-                        transaction,
-                        saveTransactionAsPDF,
-                        context
-                    )
-                }
-                val emailTransaction = {
-                    emailTransaction(
-                        customer,
-                        transaction,
-                        saveTransactionAsPDF,
-                        context
-                    )
-                }
-                val random = { println("Email Try") }
-
-                val emailTransaction: () -> Unit = when (transaction) {
-                    is Receipt -> emailReceipt
-                    is Payment -> emailTransaction
-                    else -> random
-                }
-                val editTransactionRoute = when (transaction) {
-                    is Receipt -> Routes.EDIT_RECEIPT
-                    is Payment -> Routes.EDIT_PAYMENT
-                    else -> "Transaction"
-                }
-
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 5.dp, bottom = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    ElevatedButton(onClick = {}) { Text("Print $transactionName") }
-                    ElevatedButton(onClick = emailTransaction)
-                    { Text("Email $transactionName") }
-                    ElevatedButton(onClick = { navigateTo(editTransactionRoute + "/${transaction.documentID}") })
-                    { Text("Edit") }
-                }
-            }
-        }
-    }
-}
-
- */

@@ -3,7 +3,6 @@ package com.aaronseaton.accounts.presentation.task
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.res.Configuration
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -29,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.aaronseaton.accounts.R
+import com.aaronseaton.accounts.domain.model.Matter
 import com.aaronseaton.accounts.domain.model.Task
 import com.aaronseaton.accounts.domain.model.User
 import com.aaronseaton.accounts.ui.theme.AccountsTheme
@@ -38,25 +38,25 @@ import com.aaronseaton.accounts.util.Util.Companion.decimalFormat
 import com.aaronseaton.accounts.util.Util.Companion.isValidDoubleString
 import com.aaronseaton.accounts.util.Util.Companion.timeFormatter
 import com.aaronseaton.accounts.presentation.components.*
+import com.aaronseaton.accounts.presentation.matter.MatterListState
+import com.aaronseaton.accounts.presentation.matter.MatterViewModels
 import java.util.*
 
 @Composable
 fun IndividualTask(
     taskID: String,
-    viewModel: IndividualTaskViewModel = hiltViewModel(),
+    viewModel: TasksViewModel = hiltViewModel(),
     navigateTo: (String) -> Unit,
     //businessID: String?
 ) {
-    Log.d("Individual Task", "Task no. $taskID")
-    LaunchedEffect(key1 = taskID) {
-        viewModel.updateIndividualTaskState(taskID)
-    }
-    val state by viewModel.taskIndividualState.collectAsState()
+    LaunchedEffect(taskID) {viewModel.setTaskId(taskID)}
+    val state by viewModel.individualState.collectAsState(TaskIndividualScreenState())
     when (state.loading) {
         true -> LoadingScreen()
         false -> IndividualTaskImpl(
             state.task,
             state.users,
+            state.matter,
             viewModel::updateTask,
             viewModel::deleteTask,
             navigateTo
@@ -69,6 +69,7 @@ fun IndividualTask(
 fun IndividualTaskImpl(
     task: Task,
     users: List<User>,
+    initialMatter: Matter,
     updateTask: (Task) -> Unit,
     deleteTask: (Task) -> Unit,
     navigateTo: (String) -> Unit
@@ -77,7 +78,7 @@ fun IndividualTaskImpl(
     val onLeftIcon = { navigateTo(Routes.TASK_LIST) }
     val title = "Individual Task"
     var transientTask by remember { mutableStateOf(task) }
-    val onTaskDoneChange = { newTask: Task -> transientTask = newTask }
+    val onTaskChange = { newTask: Task -> transientTask = newTask }
     var showAreYouSureAboutDeleteDialog by remember { mutableStateOf(false) }
     val onAreYouSureDismissRequest = { showAreYouSureAboutDeleteDialog = false }
     val context = LocalContext.current
@@ -108,7 +109,8 @@ fun IndividualTaskImpl(
     ) {
         IndividualTaskContent(
             transientTask,
-            onTaskDoneChange,
+            initialMatter,
+            onTaskChange,
             showAreYouSureAboutDeleteDialog,
             onAreYouSureDismissRequest,
             deleteTask,
@@ -123,14 +125,18 @@ fun IndividualTaskImpl(
 @Composable
 fun IndividualTaskContent(
     task: Task,
+    initialMatter: Matter,
     onTaskDoneChange: (Task) -> Unit,
     showAreYouSureAboutDeleteDialog: Boolean,
     onAreYouSureDismissRequest: () -> Unit,
     deleteTask: (Task) -> Unit,
     navigateTo: (String) -> Unit,
     users: List<User>,
-    modifier: Modifier
+    modifier: Modifier,
+    viewModel:MatterViewModels = hiltViewModel(),
+
 ) {
+    val state by viewModel.state.collectAsState(MatterListState())
     fun setDate(date: Date, changeDate: (Date) -> Unit) =
         DatePickerDialog.OnDateSetListener { _, year, month, day ->
             changeDate(Date(year - 1900, month, day, date.hours, date.minutes))
@@ -150,6 +156,8 @@ fun IndividualTaskContent(
     val labelStyle = MaterialTheme.typography.labelMedium.copy(
         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
     )
+    var matter by remember { mutableStateOf(initialMatter) }
+    var matterDialog by remember{mutableStateOf(false)}
 
     Column(
         modifier = modifier
@@ -177,6 +185,18 @@ fun IndividualTaskContent(
             assigneeID = task.assignedTo,
             onAssigneeSelected = { onTaskDoneChange(task.copy(assignedTo = it.documentID)) },
             users = users
+        )
+        ItemSelect(
+            items = state.matterList,
+            isDialogShowing = matterDialog,
+            onDismissRequest = {matterDialog = false},
+            filterFunction = { matters, searchText ->
+                matters.filter { it.title.contains(searchText, ignoreCase = true )}},
+            cardText = {it.title},
+            onItemSelected = {
+                onTaskDoneChange(task.copy(matter = it.documentID))
+                matter = it
+            }
         )
 
         CreatedByDialog(
@@ -358,6 +378,12 @@ fun IndividualTaskContent(
                     )
                 }
             }
+            ClickableTextField(
+                value = matter.title,
+                onValueChange = { onTaskDoneChange( task.copy(matter = it)) },
+                label = "Select Matter",
+                modifier = Modifier.clickable { matterDialog = true }
+            )
         }
     }
 }
@@ -426,7 +452,6 @@ fun UserCardPicker(
             }
     ) {
         Column(Modifier.padding(5.dp)) {
-
             Text(
                 text = user.fullName(),
                 modifier = Modifier.padding(horizontal = 5.dp),
@@ -435,33 +460,5 @@ fun UserCardPicker(
             Spacer(modifier = Modifier.padding(vertical = 5.dp))
             Divider(thickness = 1.dp, color = Color.LightGray)
         }
-    }
-}
-
-
-@Preview
-@Preview(name = "Night Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Preview("Large Screen", device = Devices.PIXEL_C)
-@Composable
-fun EditReceiptPreview() {
-    AccountsTheme {
-        IndividualTaskImpl(
-            task = Task(
-                documentID = "OIojireWE8nfw",
-                name = "Do Groceries",
-                description = "Go get groceries from the grocery and eat it all. Pnm is the Problem",
-                subTasks = mutableListOf(),
-                dueDate = Date(100, 10, 10),
-                completedDate = null,
-                done = true,
-                assignedTo = "Aaron Seaton", //UserID
-                wasCreatedBy = "Kenya Baird", //UserID
-            ),
-            updateTask = {},
-            deleteTask = {},
-            navigateTo = {},
-            users = listOf(User())
-
-        )
     }
 }

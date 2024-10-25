@@ -5,6 +5,8 @@ import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -42,7 +44,7 @@ fun IndividualUser(
     userID: String? = null,
     userViewModel: UserViewModel = hiltViewModel()
 ) {
-    val state by userViewModel.state.collectAsState()
+    val state by userViewModel.state.collectAsState(UserState(loading = true))
     state.selectedBusiness.also { println("From UI: ${it.name}") }
 
     IndividualUserImpl(
@@ -50,6 +52,33 @@ fun IndividualUser(
         userViewModel :: onChangeSelectedBusiness,
         navigateTo
     )
+
+//    TestUsers(
+//        state.user,
+//        state.selectedBusiness,
+//        state.usersBusinesses
+//    )
+}
+
+@Composable
+fun TestUsers(user: User, business: Business, usersBusinesses: List<Business>){
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(user.userID)
+        Text(user.emailAddress)
+        Text(user.selectedBusiness)
+        Text(user.firstName)
+        Text(user.lastName)
+        Divider()
+        Text(business.name)
+        Text(business.address.toString())
+        Divider()
+        usersBusinesses.forEach {
+            Text(it.name)
+        }
+    }
 }
 
 

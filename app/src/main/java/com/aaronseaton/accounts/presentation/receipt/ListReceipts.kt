@@ -7,11 +7,25 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
@@ -20,20 +34,21 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.aaronseaton.accounts.domain.model.Business
 import com.aaronseaton.accounts.domain.model.Customer
 import com.aaronseaton.accounts.domain.model.Receipt
-import com.aaronseaton.accounts.domain.model.TransactionSorting
+import com.aaronseaton.accounts.domain.model.Sorting
+import com.aaronseaton.accounts.domain.model.TestInfo
 import com.aaronseaton.accounts.domain.model.User
-import com.aaronseaton.accounts.ui.theme.AccountsTheme
-import com.aaronseaton.accounts.util.Routes
 import com.aaronseaton.accounts.presentation.components.AllBottomBar
 import com.aaronseaton.accounts.presentation.components.LoadingScreen
-import com.aaronseaton.accounts.presentation.components.TransactionCardTwo
+import com.aaronseaton.accounts.presentation.components.TransactionCard
+import com.aaronseaton.accounts.ui.theme.AccountsTheme
+import com.aaronseaton.accounts.util.Routes
 
 @Composable
 fun ListOfReceipts(
     navigateTo: (String) -> Unit = {},
     viewModel: ReceiptViewModels = hiltViewModel()
 ) {
-    val state by viewModel.list.collectAsState()
+    val state by viewModel.state.collectAsState(ReceiptListState())
     ListOfReceiptImpl(
         navigateTo,
         viewModel::changeSorting,
@@ -45,10 +60,10 @@ fun ListOfReceipts(
 @Composable
 fun ListOfReceiptImpl(
     navigateTo: (String) -> Unit,
-    changeSorting: (TransactionSorting) -> Unit,
+    changeSorting: (Sorting.TransactionSorting) -> Unit,
     state: ReceiptListState
 ) {
-    val icon = Icons.Default.ArrowBack
+    val icon = Icons.AutoMirrored.Filled.ArrowBack
     val onPressed = { navigateTo(Routes.HOME) }
     val onFabPressed = { navigateTo(Routes.ADD_RECEIPT + "/ ") }
     val title = "List of Income Received"
@@ -81,15 +96,15 @@ fun ListOfReceiptImpl(
                         ) {
                             DropdownMenuItem(
                                 text = { Text("Sort By Date") },
-                                onClick = { changeSorting(TransactionSorting.BY_DATE) }
+                                onClick = { changeSorting(Sorting.TransactionSorting.BY_DATE) }
                             )
                             DropdownMenuItem(
                                 text = { Text("Sort By Customer") },
-                                onClick = { changeSorting(TransactionSorting.BY_CUSTOMER_FIRSTNAME) }
+                                onClick = { changeSorting(Sorting.TransactionSorting.BY_CUSTOMER_FIRSTNAME) }
                             )
                             DropdownMenuItem(
                                 text = { Text("Sort By Value") },
-                                onClick = { changeSorting(TransactionSorting.BY_VALUE) }
+                                onClick = { changeSorting(Sorting.TransactionSorting.BY_VALUE) }
                             )
                         }
 
@@ -125,26 +140,24 @@ fun ListOfReceiptImpl(
 fun OutputAreaPayments(
     receipts: List<Receipt>,
     customers: List<Customer>,
-    sorting: TransactionSorting,
+    sorting: Sorting.TransactionSorting,
     accountUser: User,
     business: Business,
     navigateTo: (String) -> Unit,
     modifier: Modifier
 ) {
     val sortedReceipts = when (sorting) {
-        TransactionSorting.BY_DATE -> receipts.sortedBy { it.date }.reversed()
-        TransactionSorting.BY_CUSTOMER_FIRSTNAME -> receipts.sortedBy { receipt ->
+        Sorting.TransactionSorting.BY_DATE -> receipts.sortedBy { it.date }.reversed()
+        Sorting.TransactionSorting.BY_CUSTOMER_FIRSTNAME -> receipts.sortedBy { receipt ->
             receipt.customerID.let { id ->
                 customers.single { it.documentID == id }
             }.firstName
         }
-        TransactionSorting.BY_VALUE -> receipts.sortedBy { it.amount }.reversed()
+        Sorting.TransactionSorting.BY_VALUE -> receipts.sortedBy { it.amount }.reversed()
     }
-
-
     LazyColumn(contentPadding = PaddingValues(bottom = 150.dp), modifier = modifier) {
         items(sortedReceipts) { receipt ->
-            TransactionCardTwo(
+            TransactionCard(
                 transaction = receipt,
                 customer = customers.single { it.documentID == receipt.customerID },
                 accountUser = accountUser,
@@ -164,7 +177,11 @@ fun TestReceiptList() {
         ListOfReceiptImpl(
             navigateTo = {},
             changeSorting = {},
-            state = ReceiptListState()
+            state = ReceiptListState(
+                receipts = TestInfo.listOfTestReceipts,
+                customers = TestInfo.listOfCustomers,
+                loading = false
+            ),
         )
     }
 }

@@ -1,6 +1,7 @@
 package com.aaronseaton.accounts.util
 
 object Routes {
+
     const val REAL_HOME: String = "real_home"
     const val INDIVIDUAL_TASK: String = "individual_task"
     const val TASK_LIST: String = "task_list_screen"
@@ -23,6 +24,8 @@ object Routes {
     const val ADD_CUSTOMER: String = "add_customer_screen"
     const val EDIT_CUSTOMER: String = "edit_customer_screen"
 
+    const val TRANSACTION_SCREEN: String = "transaction_screen"
+
     const val PAYMENT_LIST: String = "payment_list_screen"
     const val INDIVIDUAL_PAYMENT: String = "individual_payment_screen"
     const val ADD_PAYMENT: String = "add_payment_screen"
@@ -32,4 +35,8 @@ object Routes {
     const val INDIVIDUAL_RECEIPT: String = "individual_receipt_screen"
     const val ADD_RECEIPT: String = "add_receipt_screen"
     const val EDIT_RECEIPT: String = "edit_receipt_screen"
+
+    const val INDIVIDUAL_MATTER: String = "individual_matter"
+    const val MATTER_LIST: String = "matter_list_screen"
+    const val ADD_MATTER: String = "add_matter_screen"
 }

@@ -15,4 +15,5 @@ data class Task(
     val assignedTo: String = "", //UserID
     val wasCreatedBy: String = "", //UserID
     val estimatedCost: Double = 0.0,
+    val matter: String? = null
 ) : FirebaseEntity

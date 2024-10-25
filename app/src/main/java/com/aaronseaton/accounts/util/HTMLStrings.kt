@@ -3,6 +3,7 @@ package com.aaronseaton.accounts.util
 import com.aaronseaton.accounts.domain.model.Business
 import com.aaronseaton.accounts.domain.model.Customer
 import com.aaronseaton.accounts.domain.model.FinancialTransaction
+import com.aaronseaton.accounts.domain.model.Payment
 import com.aaronseaton.accounts.domain.model.User
 import com.aaronseaton.accounts.util.Util.Companion.dateFormatter
 import com.aaronseaton.accounts.util.Util.Companion.decimalFormat
@@ -128,13 +129,13 @@ val htmlStringTwo: (String, Customer, Business, User, FinancialTransaction) -> S
 </body>
 </html>""".trim()
 }
-val htmlStringThree: (String, Customer, Business, User, FinancialTransaction) -> String = {styleString, contact, business, accountUser, income ->
+val htmlStringThree: (String, Customer, Business, User, FinancialTransaction) -> String = {styleString, contact, business, accountUser, transaction ->
 """<!DOCTYPE html>
 <html>
   <head>
     <style>${styleString}</style>
     <title>
-      Receipt ${income.documentID.take(4)} for
+      ${transaction.transactionName()} - ${transaction.documentID.take(4)} for
       ${contact.fullName()}
     </title>
   </head>
@@ -146,17 +147,17 @@ val htmlStringThree: (String, Customer, Business, User, FinancialTransaction) ->
               <div class = "flex flex-col flex-1 gap-4 pt-2">
                 <div class = "flex flex-row align-end">
                   <div class = "text-black font-[Helvetica-Bold] text-3xl uppercase leading-5">
-                    ${income.transactionName()}
+                    ${transaction.transactionName()}
                   </div>
                 </div>
                 <div class = "text-neutral-500 text-lg">
                   <div class = "flex flex-row">
-                    <div>${income.transactionName()} No: </div>
-                    <div>${income.documentID}</div>
+                    <div>${transaction.transactionName()} No: </div>
+                    <div>${transaction.documentID}</div>
                   </div>
                   <div class = "flex flex-row text-lg">
-                    <div>${income.transactionName()} Date: </div>
-                    <div> ${dateFormatter.format(income.date)}</div>
+                    <div>${transaction.transactionName()} Date: </div>
+                    <div> ${dateFormatter.format(transaction.date)}</div>
                   </div>
                 </div>
               </div>
@@ -167,7 +168,7 @@ val htmlStringThree: (String, Customer, Business, User, FinancialTransaction) ->
             <div class = "flex flex-row gap-8 leading-5 mt-8">
               <div class = "flex-1 text-neutral-500 text-lg leading-5">
                 <div class = "font-[Helvetica-Bold] text-black">
-                  Received By:
+                  ${if(transaction is Payment) "Paid By" else "Received By"}:
                 </div>
                 <div>${business.name}</div>
                 <div>${business.address}</div>
@@ -176,7 +177,7 @@ val htmlStringThree: (String, Customer, Business, User, FinancialTransaction) ->
               </div>
               <div class = "flex-1 text-neutral-500 text-lg leading-5">
                 <div class = "font-[Helvetica-Bold] text-black">
-                  Received From:
+                  ${if(transaction is Payment) "Paid To" else "Received From"}:
                 </div>
                 <div>${contact.firstName} ${contact.lastName}</div>
                 <div>${contact.address}</div>
@@ -193,11 +194,11 @@ val htmlStringThree: (String, Customer, Business, User, FinancialTransaction) ->
                 <div class = "w-[60%] text-center text-neutral-600">Reason</div>
               </div>
               <div class = "flex flex-row p-2 gap-4">
-                <div class = "w-[20%] text-neutral-600">${dateFormatter.format(income.date)}</div>
+                <div class = "w-[20%] text-neutral-600">${dateFormatter.format(transaction.date)}</div>
                 <div class = "w-[20%] text-center font-[Helvetica-Bold] text-lg">
-                  $${decimalFormat.format(income.amount)}
+                  $${decimalFormat.format(transaction.amount)}
                 </div>
-                <div class = "w-[60%] text-neutral-600 text-center">${income.reason}</div>
+                <div class = "w-[60%] text-neutral-600 text-center">${transaction.reason}</div>
               </div>
             </div>
           <div>

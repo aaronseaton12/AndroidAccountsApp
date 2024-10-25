@@ -9,11 +9,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val AccountsDarkColorScheme = darkColorScheme(
-    primary = Blue80,
-    onPrimary = Blue20,
-    primaryContainer = Blue30,
-    onPrimaryContainer = Blue90,
-    inversePrimary = Blue40,
+    primary = Purple300,
+    onPrimary = White,
+    primaryContainer = Purple400,
+    onPrimaryContainer = Purple950,
+    inversePrimary = Purple400,
     secondary = DarkBlue80,
     onSecondary = DarkBlue20,
     secondaryContainer = DarkBlue30,
@@ -26,9 +26,9 @@ private val AccountsDarkColorScheme = darkColorScheme(
     onError = Red20,
     errorContainer = Red30,
     onErrorContainer = Red90,
-    background = Grey10,
+    background = Purple1000,
     onBackground = Grey90,
-    surface = Grey10,
+    surface = Purple1000,
     onSurface = Grey80,
     inverseSurface = Grey90,
     inverseOnSurface = Grey20,
@@ -38,11 +38,11 @@ private val AccountsDarkColorScheme = darkColorScheme(
 )
 
 private val AccountsLightColorScheme = lightColorScheme(
-    primary = Blue40,
-    onPrimary = Color.White,
-    primaryContainer = Blue90,
-    onPrimaryContainer = Blue10,
-    inversePrimary = Blue80,
+    primary = Purple500,
+    onPrimary = White,
+    primaryContainer = Purple300,
+    onPrimaryContainer = Purple950,
+    inversePrimary = Purple400,
     secondary = DarkBlue40,
     onSecondary = Color.White,
     secondaryContainer = DarkBlue90,
@@ -55,9 +55,9 @@ private val AccountsLightColorScheme = lightColorScheme(
     onError = Color.White,
     errorContainer = Red90,
     onErrorContainer = Red10,
-    background = Grey99,
+    background = Purple50,
     onBackground = Grey10,
-    surface = Grey99,
+    surface = Purple50,
     onSurface = Grey10,
     inverseSurface = Grey20,
     inverseOnSurface = Grey95,
@@ -92,45 +92,3 @@ fun AccountsTheme(
         content = content
     )
 }
-
-
-//private val DarkColorPalette = darkColors(
-//    primary = Blue700,
-//    primaryVariant = Blue500,
-//    secondary = Blue200,
-//    onPrimary = Color.White
-//)
-//
-//private val LightColorPalette = lightColors(
-//    primary = Blue700,
-//    primaryVariant = Blue500,
-//    secondary = Blue200,
-//    background = Blue50
-//
-//    /* Other default colors to override
-//    background = Color.White,
-//    surface = Color.White,
-//    onSecondary = Color.Black,
-//    onBackground = Color.Black,
-//    onSurface = Color.Black
-//    */
-//)
-
-//@Composable
-//fun AccountsTheme(
-//    darkTheme: Boolean = isSystemInDarkTheme(),
-//
-//    content: @Composable () -> Unit) {
-//    val colors = if (darkTheme) {
-//        DarkColorPalette
-//    } else {
-//        LightColorPalette
-//    }
-//
-//    MaterialTheme(
-//        colors = colors,
-//        typography = Typography,
-//        shapes = Shapes,
-//        content = content
-//    )
-//}

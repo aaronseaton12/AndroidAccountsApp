@@ -4,7 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -17,13 +16,13 @@ import com.aaronseaton.accounts.domain.model.Customer
 import com.aaronseaton.accounts.domain.model.Payment
 import com.aaronseaton.accounts.util.Routes
 import com.aaronseaton.accounts.util.Util
-import com.aaronseaton.accounts.presentation.components.AccountDivider
 
 @Composable
 fun PaymentCard(
     customer: Customer,
     payment: Payment,
     navigateTo: (String) -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
     val (_, date, amount, customerID) = payment
 
@@ -33,8 +32,8 @@ fun PaymentCard(
             .clickable { navigateTo(Routes.INDIVIDUAL_PAYMENT + "/" + payment.documentID) },
         tonalElevation = 0.dp
     ) {
-        Column {
-            Row(Modifier.padding(15.dp, 10.dp)) {
+        Column(modifier) {
+            Row(Modifier) {
                 //AccountIndicator(Color(180, 30, 30, 200))
                 Column(Modifier.fillMaxWidth(0.55f)) {
                     Text(
@@ -53,7 +52,7 @@ fun PaymentCard(
                 }
                 Column {
                     Text(
-                        text = "$${Util.decimalFormat.format(amount)}",
+                        text = amount.toMoneyString(),
                         modifier = Modifier.fillMaxWidth(),
                         style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
                         textAlign = TextAlign.Right
@@ -68,6 +67,8 @@ fun PaymentCard(
                 }
             }
         }
-        AccountDivider()
     }
 }
+
+@Composable
+private fun Double.toMoneyString() = "- $${Util.decimalFormat.format(this)}"

@@ -11,14 +11,17 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditOrAddTextField(name:String, label: String, onTextChange: (String)->Unit){
+fun EditOrAddTextField(
+    modifier: Modifier = Modifier,
+    name:String,
+    label: String, onTextChange: (String)->Unit,
+
+){
     OutlinedTextField(
         value = name,
         onValueChange = onTextChange,
         label = { Text(label) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 10.dp),
+        modifier = modifier.fillMaxWidth(),
         colors = TextFieldDefaults.outlinedTextFieldColors(
             focusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
             unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
@@ -34,8 +37,7 @@ fun EditOrAddNumberField(value: String, label: String, onTextChange: (String) ->
         onValueChange = onTextChange,
         label = { Text(label) },
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 10.dp),
+            .fillMaxWidth(),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         colors = TextFieldDefaults.outlinedTextFieldColors(
             focusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
@@ -60,7 +62,6 @@ fun ClickableTextField(
         enabled = false,
         label = { Text(label) },
         modifier = modifier
-            .padding(horizontal = 10.dp)
             .fillMaxWidth(),
         colors = TextFieldDefaults.outlinedTextFieldColors(
             unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),

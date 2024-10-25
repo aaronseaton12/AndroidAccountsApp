@@ -6,7 +6,7 @@ import java.util.Locale
 
 class Util {
     companion object {
-        val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        val dateFormatter = SimpleDateFormat("dd MMM yyyy", Locale.US)
         val prettyDateFormatter = SimpleDateFormat("EEE, MMM dd, yyyy @ h:mm a", Locale.US)
         val timeFormatter = SimpleDateFormat("h:mm a", Locale.US)
         val decimalFormat = DecimalFormat("#,###,##0.00")

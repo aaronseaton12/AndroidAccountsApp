@@ -34,50 +34,42 @@ fun IndividualPayment(
     navigateTo: (String) -> Unit = {},
     popBackStack: () -> Unit = {},
     paymentID: String,
-    viewModel: IndividualPaymentViewModel = hiltViewModel()
+    viewModel: PaymentViewModels = hiltViewModel()
 ) {
-    LaunchedEffect(key1 = paymentID) {
-        viewModel.updateIndividualPaymentState(paymentID)
-    }
-    val state by viewModel.paymentIndividualState.collectAsState()
+    LaunchedEffect(key1 = paymentID) {viewModel.setPaymentId(paymentID)}
+    val state by viewModel.individualState.collectAsState(PaymentIndividualState())
     val context = LocalContext.current
     val deletePayment = { it: FinancialTransaction -> viewModel.deletePayment(it) }
-    val fileName = fileName(state.customer, state.payment)
+    val fileName = fileName(state.customer, state.transaction)
     val fileLocation = fileLocation(fileName)
     val transactionAsHTML = htmlStringThree(
         tailWindStyle,
         state.customer,
         state.business,
         state.accountUser,
-        state.payment,
+        state.transaction,
     )
     val saveTransactionAsPDF = {
+        viewModel.setLoadingTrue()
         saveHTMLAsPDF(
             context,
             transactionAsHTML,
             fileLocation,
-        )
-    }
-    val openPDF = {
-        openPDF(
-            context,
-            fileLocation,
-        )
-    }
-    val savePdfAndOpen = {
-        saveTransactionAsPDF()
-        openPDF()
+        ){
+            openPDF(context, fileLocation)
+            viewModel.setLoadingFalse()
+        }
     }
     when (state.loading) {
         true -> LoadingScreen()
         false -> IndividualPaymentImpl(
-            state.payment,
+            state.transaction,
             state.customer,
             state.accountUser,
             state.business,
             navigateTo,
             popBackStack,
-            savePdfAndOpen,
+            saveTransactionAsPDF,
             viewModel::deletePayment
         )
     }

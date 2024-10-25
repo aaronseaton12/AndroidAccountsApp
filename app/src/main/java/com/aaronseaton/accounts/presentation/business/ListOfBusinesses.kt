@@ -24,7 +24,7 @@ fun ListOfBusinesses(
     popBackStack: () -> Unit = {},
     viewModel: BusinessViewModel = hiltViewModel()
 ) {
-    val state by viewModel.businessListState.collectAsState()
+    val state by viewModel.state.collectAsState(BusinessListState())
     ListOfBusinessImpl(state, navigateTo, popBackStack)
 }
 

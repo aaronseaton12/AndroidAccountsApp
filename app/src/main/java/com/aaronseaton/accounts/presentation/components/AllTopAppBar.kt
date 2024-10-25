@@ -1,11 +1,24 @@
 package com.aaronseaton.accounts.presentation.components
 
 import android.content.res.Configuration
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,16 +49,39 @@ fun AllTopAppBar(
     }
 }
 
-@Preview
-@Preview(name = "Night Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Preview("Large screen", device = Devices.PIXEL_C)
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(apiLevel = 33,)
+@Preview(apiLevel = 33, name = "Night Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Large screen", device = Devices.PIXEL_C)
 @Composable
 private fun EditPaymentPreview() {
     AccountsTheme {
-        AllTopAppBar(
-            title = "Presenting",
-            leftIcon = Icons.Default.Add,
-            onLeftIcon = { /*TODO*/ }
-        )
+        Scaffold(
+            topBar = {
+                MediumTopAppBar(
+                    title = { Text("Presenting") },
+                    navigationIcon = {
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon( Icons.AutoMirrored.Filled.ArrowBack,null)
+                        }},
+                    actions = {
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon(Icons.Default.Call, null)
+                        }
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon(Icons.Default.Email, null)
+                        }
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon(Icons.Default.MoreVert, null)
+                        }
+                    }
+                )
+            }
+        ) {
+            Column (Modifier.padding(it)) {
+                Text("This")
+
+            }
+        }
     }
 }

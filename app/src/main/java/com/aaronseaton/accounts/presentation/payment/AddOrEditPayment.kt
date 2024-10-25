@@ -1,56 +1,83 @@
 package com.aaronseaton.accounts.presentation.payment
 
 import android.app.DatePickerDialog
-import android.content.res.Configuration
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Devices
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.aaronseaton.accounts.domain.model.Customer
+import com.aaronseaton.accounts.domain.model.Matter
 import com.aaronseaton.accounts.domain.model.Payment
 import com.aaronseaton.accounts.domain.model.PaymentMethod
-import com.aaronseaton.accounts.domain.model.TestInfo
-import com.aaronseaton.accounts.ui.theme.AccountsTheme
+import com.aaronseaton.accounts.presentation.components.AllTopAppBar
+import com.aaronseaton.accounts.presentation.components.ClickableTextField
+import com.aaronseaton.accounts.presentation.components.EditOrAddNumberField
+import com.aaronseaton.accounts.presentation.components.EditOrAddTextField
+import com.aaronseaton.accounts.presentation.components.ItemSelect
+import com.aaronseaton.accounts.presentation.components.LoadingScreen
+import com.aaronseaton.accounts.presentation.components.showDatePicker
+import com.aaronseaton.accounts.presentation.customer.SearchAppBar
+import com.aaronseaton.accounts.presentation.matter.MatterListState
+import com.aaronseaton.accounts.presentation.matter.MatterViewModels
+import com.aaronseaton.accounts.presentation.receipt.PaymentMethodDialog
 import com.aaronseaton.accounts.util.Routes
 import com.aaronseaton.accounts.util.Util
 import com.aaronseaton.accounts.util.Util.Companion.dateFormatter
 import com.aaronseaton.accounts.util.Util.Companion.isValidDoubleString
-import com.aaronseaton.accounts.presentation.components.*
-import com.aaronseaton.accounts.presentation.customer.SearchAppBar
-import com.aaronseaton.accounts.presentation.receipt.PaymentMethodDialog
-import java.util.*
+import java.util.Date
 
 @Composable
-fun AddPayment(
-    customerID: String? = "",
+fun AddOrEditPayment(
+    customerID: String? = null,
+    paymentID: String? = null,
     navigateTo: (String) -> Unit = {},
     viewModel: PaymentViewModels = hiltViewModel()
 ) {
-    val uiState by viewModel.paymentState.collectAsState()
-    //val customers by accountViewModel.customers.observeAsState(emptyList())
-    val initialCustomer = uiState.customers.find { it.documentID == customerID } ?: Customer()
-    val insertPayment = { payment: Payment -> viewModel.insertPayment(payment) }
-    when (uiState.loading) {
+    if(!customerID.isNullOrBlank()){
+        LaunchedEffect(customerID) {viewModel.setCustomerId(customerID)}
+    }else if (!paymentID.isNullOrBlank()){
+        LaunchedEffect(paymentID) { viewModel.setPaymentId(paymentID)}
+    }
+
+    val state by viewModel.individualState.collectAsState(PaymentIndividualState())
+
+    when (state.loading) {
         true -> LoadingScreen()
         false -> AddPaymentImpl(
-            initialCustomer = initialCustomer,
-            customers = uiState.customers,
-            insertPayment = insertPayment,
+            initialCustomer = state.customer,
+            initialPayment = state.transaction,
+            customers = state.customers,
+            matter = state.matter,
+            insertPayment = viewModel::updatePayment,
             navigateTo = navigateTo
         )
     }
@@ -60,7 +87,9 @@ fun AddPayment(
 @Composable
 private fun AddPaymentImpl(
     initialCustomer: Customer,
+    initialPayment: Payment,
     customers: List<Customer>,
+    matter: Matter,
     insertPayment: (Payment) -> Unit,
     navigateTo: (String) -> Unit
 ) {
@@ -74,7 +103,9 @@ private fun AddPaymentImpl(
         println(initialCustomer)
         PaymentInputContent(
             initialCustomer,
+            initialPayment,
             customers,
+            matter,
             navigateTo,
             insertPayment,
             Modifier.padding(padding)
@@ -85,12 +116,23 @@ private fun AddPaymentImpl(
 @Composable
 fun PaymentInputContent(
     initialCustomer: Customer,
+    initialPayment: Payment,
     customers: List<Customer>,
+    initialMatter: Matter,
     navigateTo: (String) -> Unit,
-    insertPayment: (Payment) -> Unit,
-    modifier: Modifier = Modifier
+    updatePayment: (Payment) -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: MatterViewModels = hiltViewModel()
 ) {
-    var paymentTransient by remember { mutableStateOf(Payment(customerID = initialCustomer.documentID)) }
+    val TAG = "Add or Edit Payment"
+    val state by viewModel.state.collectAsState(MatterListState())
+    var matter by remember { mutableStateOf(initialMatter) }
+    var paymentTransient by remember {
+        mutableStateOf(initialPayment.copy(
+            customerID = initialCustomer.documentID,
+            payMethod = if(initialPayment.payMethod.isNullOrBlank()) initialPayment.payMethod else PaymentMethod.CASH.type
+        ))
+    }
     var selectedCustomer by remember { mutableStateOf(initialCustomer) }
     val onCustomerSelected: (Customer) -> Unit = {
         paymentTransient = paymentTransient.copy(customerID = it.documentID)
@@ -109,9 +151,9 @@ fun PaymentInputContent(
     val onPaymentDismissRequest = { isPaymentDialogShowing = false }
     var isDialogShowing by remember { mutableStateOf(false) }
     val onDismissRequest = { isDialogShowing = false }
-
+    var matterDialog by remember { mutableStateOf(false) }
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize().padding(horizontal = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         CustomerDialog(
@@ -126,12 +168,25 @@ fun PaymentInputContent(
             paymentMethod = paymentTransient.payMethod,
             onPaymentMethodSelected = onPaymentMethodSelected
         )
+        ItemSelect(
+            items = state.matterList,
+            isDialogShowing = matterDialog,
+            onDismissRequest = {matterDialog = false},
+            filterFunction = { matters, searchText ->
+                matters.filter { it.title.contains(searchText, ignoreCase = true )}},
+            cardText = {it.title},
+            onItemSelected = {
+                matter = it
+                paymentTransient = paymentTransient.copy(matter = it.documentID)
+            }
+        )
         ClickableTextField(
             value = selectedCustomer.fullName(),
             onValueChange = {},
             label = "Customer Name",
             modifier = Modifier.clickable { isDialogShowing = true }
         )
+
         //EditOrAddNumberField(customerID, "CustomerID") { customerID = it }
         var amount by remember { mutableStateOf(Util.decimalFormat.format(paymentTransient.amount)) }
         EditOrAddNumberField(
@@ -148,7 +203,6 @@ fun PaymentInputContent(
                 amount = Util.decimalFormat.parse(amount)
                     ?.toDouble() ?: 0.0
             )
-
         }
         ClickableTextField(
             value = dateFormatter.format(paymentTransient.date),
@@ -176,16 +230,21 @@ fun PaymentInputContent(
             label = "Reason"
         ) { paymentTransient = paymentTransient.copy(reason = it) }
 
-        //Add Matter
-        //Matter has a customerID and a name and a type
+        ClickableTextField(
+            value = matter.title,
+            onValueChange = { paymentTransient = paymentTransient.copy(matter = it) },
+            label = "Matter Title",
+            modifier = Modifier.clickable { matterDialog = true }
+        )
 
         Spacer(modifier = Modifier.padding(5.dp))
         Button(onClick = {
-            if (selectedCustomer.documentID.isBlank()) {
+            if (paymentTransient.customerID.isBlank()) {
                 Toast.makeText(context, "Select a Customer", Toast.LENGTH_SHORT).show()
                 return@Button
             }
-            insertPayment(paymentTransient)
+            Log.d(TAG, paymentTransient.toString())
+            updatePayment(paymentTransient)
             Toast.makeText(context, "Expense Added", Toast.LENGTH_SHORT).show()
             navigateTo(Routes.PAYMENT_LIST)
         }
@@ -265,23 +324,7 @@ fun CustomerCardPicker(
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(modifier = Modifier.padding(vertical = 5.dp))
-            Divider(thickness = 1.dp, color = Color.LightGray)
+            HorizontalDivider(thickness = 1.dp, color = Color.LightGray)
         }
-    }
-}
-
-
-@Preview
-@Preview(name = "Night Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Preview("Large Screen", device = Devices.PIXEL_C)
-@Composable
-private fun AddPaymentPreview() {
-    AccountsTheme {
-        AddPaymentImpl(
-            initialCustomer = Customer(),
-            customers = listOf(TestInfo.Damian, TestInfo.Khadija),
-            insertPayment = {},
-            navigateTo = {}
-        )
     }
 }

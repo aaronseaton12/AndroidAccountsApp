@@ -145,7 +145,7 @@ fun AboutScreenContent(
                 //style = MaterialTheme.typography.body2
             )
             Spacer(Modifier.height(20.dp))
-            Divider(
+            HorizontalDivider(
                 Modifier.padding(horizontal = 15.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant
             )

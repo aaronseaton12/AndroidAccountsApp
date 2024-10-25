@@ -1,17 +1,26 @@
 package com.aaronseaton.accounts.presentation.components
 
-import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,56 +28,18 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.aaronseaton.accounts.ui.theme.AccountsTheme
-import java.util.*
-
-@Composable
-fun AccountIndicator(color: Color, modifier: Modifier = Modifier) {
-    Spacer(
-        modifier
-            .size(4.dp, 50.dp)
-            .background(color = color)
-    )
-}
+import java.util.Calendar
+import java.util.Date
 
 @Composable
 fun AccountDivider(
     color: Color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
 ) {
-    Divider(
+    HorizontalDivider(
         modifier = Modifier.padding(horizontal = 10.dp),
         thickness = 1.dp,
         color = color
     )
-}
-
-@Composable
-
-fun LoadingScreen(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.TopCenter
-    ) {
-//        LinearProgressIndicator(
-//            modifier = modifier.fillMaxWidth().padding(top = 64.dp),
-//            trackColor = MaterialTheme.colorScheme.primaryContainer,
-//            color = MaterialTheme.colorScheme.primary,
-//
-//        )
-        CircularProgressIndicator(
-            modifier = Modifier
-                .size(130.dp, 130.dp)
-                .align(Alignment.Center),
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            text = "Loading...",
-            modifier = Modifier.align(Alignment.Center),
-            color = MaterialTheme.colorScheme.onBackground,
-            style = MaterialTheme.typography.headlineSmall
-        )
-    }
 }
 
 
@@ -142,8 +113,7 @@ fun CompoundFAB(
 }
 
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@Preview
+@Preview(apiLevel = 33)
 @Composable
 fun LoadingScreenPreview() {
     AccountsTheme {
@@ -158,7 +128,7 @@ fun LoadingScreenPreview() {
                 AllBottomBar(navigateTo = {})
             }
         ) { padding ->
-            LoadingScreen()
+            LoadingScreen(Modifier.padding(padding))
         }
     }
 }

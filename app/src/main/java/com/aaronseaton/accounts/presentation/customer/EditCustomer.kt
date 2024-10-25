@@ -28,10 +28,13 @@ fun EditCustomer(
     navigateTo: (String) -> Unit = {},
     popBackStack: () -> Unit = {},
     customerID: String,
-    viewModel: IndividualCustomerViewModel = hiltViewModel()
+    viewModel: CustomerViewModels = hiltViewModel()
 ) {
-    viewModel.getCustomer(customerID)
-    val uiState by viewModel.individualCustomerState.collectAsState()
+
+    val uiState by viewModel
+        .individualCustomerState(customerID)
+        .collectAsState(IndividualCustomerState(loading = true))
+
     when (uiState.loading) {
         true -> LoadingScreen()
         false ->
@@ -105,39 +108,39 @@ private fun EditCustomerContent(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.verticalScroll(rememberScrollState(0))
+        modifier = modifier.padding(horizontal = 10.dp).verticalScroll(rememberScrollState(0))
     ) {
-        EditOrAddTextField(customer.firstName, "First Name") {
+        EditOrAddTextField(name = customer.firstName, label = "First Name") {
             onChangeCustomerInfo(customer.copy(firstName = it))
         }
-        EditOrAddTextField(customer.middleName, "Middle Name") {
+        EditOrAddTextField(name = customer.middleName, label = "Middle Name") {
             onChangeCustomerInfo(customer.copy(middleName = it))
         }
-        EditOrAddTextField(customer.lastName, "Last Name") {
+        EditOrAddTextField(name = customer.lastName, label = "Last Name") {
             onChangeCustomerInfo(customer.copy(lastName = it))
         }
-        EditOrAddTextField(customer.emailAddress, "Email") {
+        EditOrAddTextField(name = customer.emailAddress, label = "Email") {
             onChangeCustomerInfo(customer.copy(emailAddress = it))
         }
-        EditOrAddTextField(customer.address.addressLine1, "Address Line 1") {
+        EditOrAddTextField(name = customer.address.addressLine1, label = "Address Line 1") {
             onChangeCustomerInfo(customer.copy(address = customer.address.copy(addressLine1 = it)))
         }
-        EditOrAddTextField(customer.address.addressLine2, "Address Line 2") {
+        EditOrAddTextField(name = customer.address.addressLine2, label = "Address Line 2") {
             onChangeCustomerInfo(customer.copy(address = customer.address.copy(addressLine2 = it)))
         }
-        EditOrAddTextField(customer.address.city, "City") {
+        EditOrAddTextField(name = customer.address.city, label = "City") {
             onChangeCustomerInfo(customer.copy(address = customer.address.copy(city = it)))
         }
-        EditOrAddTextField(customer.address.country, "Country") {
+        EditOrAddTextField(name = customer.address.country, label = "Country") {
             onChangeCustomerInfo(customer.copy(address = customer.address.copy(country = it)))
         }
-        EditOrAddTextField(customer.phoneNumber.cellNumber, "Cell Number") {
+        EditOrAddTextField(name = customer.phoneNumber.cellNumber, label = "Cell Number") {
             onChangeCustomerInfo(customer.copy(phoneNumber = customer.phoneNumber.copy(cellNumber = it)))
         }
-        EditOrAddTextField(customer.phoneNumber.homeNumber, "Home Number") {
+        EditOrAddTextField(name = customer.phoneNumber.homeNumber, label = "Home Number") {
             onChangeCustomerInfo(customer.copy(phoneNumber = customer.phoneNumber.copy(homeNumber = it)))
         }
-        EditOrAddTextField(customer.phoneNumber.workNumber, "Work Number") {
+        EditOrAddTextField(name = customer.phoneNumber.workNumber, label =  "Work Number") {
             onChangeCustomerInfo(customer.copy(phoneNumber = customer.phoneNumber.copy(workNumber = it)))
         }
         Spacer(modifier = Modifier.height(350.dp))

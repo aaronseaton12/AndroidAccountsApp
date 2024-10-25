@@ -6,7 +6,12 @@ import com.aaronseaton.accounts.domain.model.User
 import com.aaronseaton.accounts.domain.repository.ProfileImageRepository
 import com.aaronseaton.accounts.util.Constants.IMAGES
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -14,8 +19,18 @@ import javax.inject.Singleton
 @Singleton
 class ProfileImageRepositoryImpl @Inject constructor(
     private val storage: FirebaseStorage,
-    private val accountUser: User,
+    private val userRepository: FirebaseUserRepository,
 ) : ProfileImageRepository {
+    var accountUser = User()
+
+    init {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO);
+        scope.launch {
+            userRepository.accountUser.collectLatest{
+                accountUser = it
+            }
+        }
+    }
     override suspend fun addImageToFirebaseStorage(imageUri: Uri, name: String) = flow {
         try {
             emit(Response.Loading)

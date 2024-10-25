@@ -5,131 +5,66 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.aaronseaton.accounts.domain.model.Business
-import com.aaronseaton.accounts.domain.model.Payment
-import com.aaronseaton.accounts.domain.model.Receipt
 import com.aaronseaton.accounts.domain.model.User
-import com.aaronseaton.accounts.domain.repository.EntityRepo
-import com.aaronseaton.accounts.domain.repository.ProfileImageRepository
-import com.aaronseaton.accounts.domain.repository.UserRepository
+import com.aaronseaton.accounts.domain.repository.RepoGroup
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.Month
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val accountUser: User,
-    private val businessRepo: EntityRepo<Business>,
-    private val receiptRepo: EntityRepo<Receipt>,
-    private val paymentRepo: EntityRepo<Payment>,
-    private val userRepo: EntityRepo<User>,
-    private val accountUserRepo: UserRepository,
-    //private val repository: FlowRepository,
-    private val repo: ProfileImageRepository
+    private val repoGroup: RepoGroup
 ): ViewModel() {
-
-    private val _homeState = MutableStateFlow(HomeState(loading = true))
-    val homeState: StateFlow<HomeState> = _homeState.asStateFlow()
     private var selectedMonth by mutableIntStateOf(LocalDate.now().month.ordinal)
-    private var selectedYear by mutableIntStateOf(LocalDate.now().year)
+    private val year = MutableStateFlow(LocalDate.now().year)
+    fun increaseYear(amount: Int = 1) = year.update { it + amount}
+    fun decreaseYear(amount: Int = 1) = year.update { it - amount }
 
-    init {
-        Log.d(TAG, "Initialization")
-        Log.d(TAG, "Time Before")
-        viewModelScope.launch {
-            accountUserRepo.accountUser.collect{user->
-                Log.d(TAG, "Current User: ${user?.fullName()}\nBusiness: ${user?.selectedBusiness}")
-            }
-        }
-        viewModelScope.launch {
-            updateHomeState()
-        }
-        _homeState.update { it.copy(loading = false) }
-        Log.d(TAG, "Time After")
-    }
-
-    fun increaseYear(amount: Int = 1) {
-        selectedYear += amount
-        updateHomeState()
-    }
-
-    fun decreaseYear(amount: Int = 1) {
-        selectedYear -= amount
-        updateHomeState()
-    }
-
-    private fun updateHomeState() = viewModelScope.launch(Dispatchers.IO) {
-        Log.d(TAG, "UpdateHomeState()")
-        Log.d(TAG, "SetAccountUser()")
-        val accountUser = accountUser
-        val business = async { businessRepo.get(accountUser.selectedBusiness) }
-
-        combine(
-            paymentRepo.liveList(),
-            receiptRepo.liveList(),
-            userRepo.liveList().map {
-                it.filter { user -> business.await().members.contains(user.documentID) }
-            }
-        ) { payments, receipts, users ->
-            fun expensesByYear(year: Int) =
-                payments.filter { it.date.year + 1900 == year }.sumOf { it.amount }
-
-            fun revenueByYear(year: Int) =
-                receipts.filter { it.date.year + 1900 == year }.sumOf { it.amount }
-
-            fun netIncomeByYear(year: Int) = revenueByYear(year) - expensesByYear(year)
-            fun revenueByMonthAndYear(month: Int, year: Int) = receipts
-                .filter { it.date.month == month && it.date.year + 1900 == year }
+    val state = repoGroup.repos.combine(year) { repos, selectedYear ->
+        coroutineScope {
+            val business = async { repos.business.get(repos.accountUser.selectedBusiness) }
+            val receipts = async { repos.receipt.list() }
+            val payments = async { repos.payment.list() }
+            val users = async { repos.user.list().filter { business.await().members.contains(it.documentID) } }
+            val revenueForYear = receipts.await()
+                .filter {it.date.year + 1900 == selectedYear  }
+                .sumOf { it.amount }
+            val expensesForYear = payments.await()
+                .filter { it.date.year + 1900 == selectedYear  }
                 .sumOf { it.amount }
 
-            fun expenditureByMonthAndYear(month: Int, year: Int) = payments
-                .filter { it.date.month == month && it.date.year + 1900 == year }
+            val incomeForYear = revenueForYear - expensesForYear
+            val revenueByMonthAndYear = receipts.await()
+                .filter { it.date.month == selectedMonth && it.date.year + 1900 == selectedYear }
                 .sumOf { it.amount }
-
-            fun netIncomeByMonthAndYear(month: Int, year: Int) =
-                revenueByMonthAndYear(month, year) - expenditureByMonthAndYear(month, year)
-
+            val expenditureByMonthAndYear = payments.await()
+                .filter { it.date.month == selectedMonth && it.date.year + 1900 == selectedYear }
+                .sumOf { it.amount }
+            val netIncomeByMonthAndYear =
+                revenueByMonthAndYear - expenditureByMonthAndYear
             HomeState(
-                revenueForYear = revenueByYear(selectedYear),
-                expensesForYear = expensesByYear(selectedYear),
-                incomeForYear = netIncomeByYear(selectedYear),
-                incomeForMonth = netIncomeByMonthAndYear(selectedMonth, selectedYear),
-                business = business.await(),
-                accountUser = accountUser,
+                repos.accountUser,
+                users.await(),
+                business.await(),
+                revenueForYear,
+                expensesForYear,
+                incomeForYear,
+                netIncomeByMonthAndYear,
                 selectedYear = selectedYear,
-                users = users
-
-            )
-        }.collect { homeState ->
-            Log.d(TAG, "HomeState COLLECTED")
-            _homeState.update {
-                it.copy(
-                    revenueForYear = homeState.revenueForYear,
-                    expensesForYear = homeState.expensesForYear,
-                    incomeForYear = homeState.incomeForYear,
-                    incomeForMonth = homeState.incomeForMonth,
-                    business = homeState.business,
-                    accountUser = homeState.accountUser,
-                    selectedYear = homeState.selectedYear,
-                    users = homeState.users
-                )
-            }
+                loading = false
+            ).also { Log.d(TAG, "Emitting from HomeView" ) }
         }
     }
 
     companion object {
-        const val TAG = "HomeViewModel"
+        val TAG = "Home ViewModel"
     }
 }
 

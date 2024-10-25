@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
@@ -22,20 +22,22 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.aaronseaton.accounts.domain.model.Business
 import com.aaronseaton.accounts.domain.model.User
-import com.aaronseaton.accounts.ui.theme.AccountsTheme
-import com.aaronseaton.accounts.util.Routes
 import com.aaronseaton.accounts.presentation.components.AllTopAppBar
 import com.aaronseaton.accounts.presentation.components.EditOrAddTextField
 import com.aaronseaton.accounts.presentation.components.LoadingScreen
+import com.aaronseaton.accounts.ui.theme.AccountsTheme
+import com.aaronseaton.accounts.util.Routes
 
 @Composable
 fun AddBusiness(
+    businessID: String? = null,
     navigateTo: (String) -> Unit = {},
     popBackStack: () -> Unit = {},
     viewModel: BusinessViewModel = hiltViewModel()
     //navController: NavHostController
 ) {
-    val state by viewModel.individualBusinessState.collectAsState()
+    LaunchedEffect(businessID) {viewModel.setBusinessId(businessID)}
+    val state by viewModel.individualState.collectAsState(IndividualBusinessState())
 
     when (state.loading) {
         true -> LoadingScreen()
@@ -59,7 +61,7 @@ fun AddBusinessImpl(
     popBackStack: () -> Unit = {},
 ) {
     val title = "Add Business"
-    val leftIcon = Icons.Default.ArrowBack
+    val leftIcon = Icons.AutoMirrored.Filled.ArrowBack
     val onLeftIcon = { navigateTo(Routes.BUSINESS_LIST) }
     val rightIcon = Icons.Default.Done
     var business by remember {
@@ -118,33 +120,34 @@ fun AddBusinessScaffold(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.verticalScroll(rememberScrollState(0))
+        modifier = modifier.padding(horizontal = 10.dp).verticalScroll(rememberScrollState(0))
     ) {
-        EditOrAddTextField(business.name, "Business Name") {
+        EditOrAddTextField(name = business.name, label = "Business Name") {
             onChangeBusinessInfo(business.copy(name = it))
         }
-        EditOrAddTextField(business.emailAddress, "Business Email") {
+
+        EditOrAddTextField(name = business.emailAddress, label = "Business Email") {
             onChangeBusinessInfo(business.copy(emailAddress = it))
         }
-        EditOrAddTextField(business.address.addressLine1, "Address Line 1") {
+        EditOrAddTextField(name = business.address.addressLine1, label = "Address Line 1") {
             onChangeBusinessInfo(business.copy(address = business.address.copy(addressLine1 = it)))
         }
-        EditOrAddTextField(business.address.addressLine2, "Address Line 2") {
+        EditOrAddTextField(name = business.address.addressLine2, label = "Address Line 2") {
             onChangeBusinessInfo(business.copy(address = business.address.copy(addressLine2 = it)))
         }
-        EditOrAddTextField(business.address.city, "City") {
+        EditOrAddTextField(name = business.address.city, label = "City") {
             onChangeBusinessInfo(business.copy(address = business.address.copy(city = it)))
         }
-        EditOrAddTextField(business.address.country, "Country") {
+        EditOrAddTextField(name = business.address.country, label = "Country") {
             onChangeBusinessInfo(business.copy(address = business.address.copy(country = it)))
         }
-        EditOrAddTextField(business.phoneNumber.cellNumber, "Cell Number") {
+        EditOrAddTextField(name = business.phoneNumber.cellNumber, label = "Cell Number") {
             onChangeBusinessInfo(business.copy(phoneNumber = business.phoneNumber.copy(cellNumber = it)))
         }
-        EditOrAddTextField(business.phoneNumber.homeNumber, "Home Number") {
+        EditOrAddTextField(name = business.phoneNumber.homeNumber, label = "Home Number") {
             onChangeBusinessInfo(business.copy(phoneNumber = business.phoneNumber.copy(homeNumber = it)))
         }
-        EditOrAddTextField(business.phoneNumber.workNumber, "Work Number") {
+        EditOrAddTextField(name = business.phoneNumber.workNumber, label = "Work Number") {
             onChangeBusinessInfo(business.copy(phoneNumber = business.phoneNumber.copy(workNumber = it)))
         }
         Spacer(modifier = Modifier.height(350.dp))

@@ -36,13 +36,13 @@ fun IndividualReceipt(
     navigateTo: (String) -> Unit = {},
     popBackStack: () -> Unit = {},
     receiptID: String,
-    viewModel: IndividualReceiptViewModel = hiltViewModel()
+    viewModel: ReceiptViewModels = hiltViewModel()
     //viewModel: TestReceiptVMI n = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
-    LaunchedEffect(key1 = receiptID) {
-        viewModel.updateIndividualReceiptState(receiptID)
-    }
-    val state by viewModel.individual.collectAsState()
+    LaunchedEffect(key1 = receiptID){viewModel.setReceiptId(receiptID)}
+    val state by viewModel.individualState.collectAsState(
+        ReceiptIndividualState(loading = true)
+    )
     val context = LocalContext.current
     val deletePayment = { it: FinancialTransaction -> viewModel.deleteReceipt(it) }
     val fileName = fileName(state.customer, state.transaction)
@@ -55,22 +55,17 @@ fun IndividualReceipt(
         state.transaction,
     )
     val saveTransactionAsPDF = {
+        viewModel.setLoadingTrue()
         saveHTMLAsPDF(
             context,
             transactionAsHTML,
             fileLocation,
-        )
+        ){
+            openPDF(context, fileLocation)
+            viewModel.setLoadingFalse()
+        }
     }
-    val openPDF = {
-        openPDF(
-            context,
-            fileLocation,
-        )
-    }
-    val savePdfAndOpen = {
-        saveTransactionAsPDF()
-        openPDF()
-    }
+
     when (state.loading) {
         true -> LoadingScreen()
         false -> IndividualReceiptImpl(
@@ -80,8 +75,8 @@ fun IndividualReceipt(
             state.business,
             navigateTo,
             popBackStack,
-            savePdfAndOpen,
-            viewModel::deleteReceipt
+            saveTransactionAsPDF,
+            viewModel::deleteReceipt,
         )
     }
 }
@@ -167,8 +162,9 @@ private fun IndividualReceiptPreview() {
             navigateTo = {},
             popBackStack = { /*TODO*/ },
             onFabPressed = { /*TODO*/ },
+            {},
 
-            ) {}
+            )
     }
 }
 

@@ -33,8 +33,8 @@ fun EditBusiness(
     businessID: String,
     viewModel: BusinessViewModel = hiltViewModel()
 ) {
-    viewModel.getBusiness(businessID)
-    val state by viewModel.individualBusinessState.collectAsState()
+    LaunchedEffect(businessID) {viewModel.setBusinessId(businessID)}
+    val state by viewModel.individualState.collectAsState(IndividualBusinessState())
 
     when (state.loading) {
         true -> LoadingScreen()
@@ -109,33 +109,33 @@ private fun EditBusinessContent(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.verticalScroll(rememberScrollState(0))
+        modifier = modifier.padding(horizontal = 10.dp).verticalScroll(rememberScrollState(0))
     ) {
-        EditOrAddTextField(business.name, "Name") {
+        EditOrAddTextField(name = business.name, label = "Name") {
             onChangeBusinessInfo(business.copy(name = it))
         }
-        EditOrAddTextField(business.emailAddress, "Email") {
+        EditOrAddTextField(name = business.emailAddress, label = "Email") {
             onChangeBusinessInfo(business.copy(emailAddress = it))
         }
-        EditOrAddTextField(business.address.addressLine1, "Address Line 1") {
+        EditOrAddTextField(name = business.address.addressLine1, label = "Address Line 1") {
             onChangeBusinessInfo(business.copy(address = business.address.copy(addressLine1 = it)))
         }
-        EditOrAddTextField(business.address.addressLine2, "Address Line 2") {
+        EditOrAddTextField(name = business.address.addressLine2, label = "Address Line 2") {
             onChangeBusinessInfo(business.copy(address = business.address.copy(addressLine2 = it)))
         }
-        EditOrAddTextField(business.address.city, "City") {
+        EditOrAddTextField(name = business.address.city, label = "City") {
             onChangeBusinessInfo(business.copy(address = business.address.copy(city = it)))
         }
-        EditOrAddTextField(business.address.country, "Country") {
+        EditOrAddTextField(name = business.address.country, label = "Country") {
             onChangeBusinessInfo(business.copy(address = business.address.copy(country = it)))
         }
-        EditOrAddTextField(business.phoneNumber.cellNumber, "Cell Number") {
+        EditOrAddTextField(name = business.phoneNumber.cellNumber, label = "Cell Number") {
             onChangeBusinessInfo(business.copy(phoneNumber = business.phoneNumber.copy(cellNumber = it)))
         }
-        EditOrAddTextField(business.phoneNumber.homeNumber, "Home Number") {
+        EditOrAddTextField(name = business.phoneNumber.homeNumber, label = "Home Number") {
             onChangeBusinessInfo(business.copy(phoneNumber = business.phoneNumber.copy(homeNumber = it)))
         }
-        EditOrAddTextField(business.phoneNumber.workNumber, "Work Number") {
+        EditOrAddTextField(name = business.phoneNumber.workNumber, label = "Work Number") {
             onChangeBusinessInfo(business.copy(phoneNumber = business.phoneNumber.copy(workNumber = it)))
         }
         Spacer(modifier = Modifier.height(350.dp))

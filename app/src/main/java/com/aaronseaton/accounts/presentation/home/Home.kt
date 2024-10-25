@@ -12,9 +12,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -61,13 +62,12 @@ fun Home(
     homeViewModel: HomeViewModel = hiltViewModel(),
 ) {
     Log.d(TAG, "Home()")
-    val state by homeViewModel.homeState.collectAsState ()
+    val state by homeViewModel.state.collectAsState (HomeState(loading = true))
 
     HomeScreenImpl(
         state,
         navigateTo,
         signOut,
-
         homeViewModel::increaseYear,
         homeViewModel::decreaseYear
     )
@@ -156,100 +156,106 @@ private fun HomeScreenContent(
     Log.d(TAG, "HomeScreenContent()")
     Surface(tonalElevation = 0.dp) {
         Column(
-            verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         ) {
-            BusinessUsers(users = state.users, navigateTo = navigateTo)
-            Text(
-                text = (stringResource(R.string.home_welcome) + " " + state.accountUser.fullName),
-                modifier = Modifier.padding(5.dp),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.headlineSmall
-            )
-            val homeCardColour = MaterialTheme.colorScheme.surface //Color(160, 220, 255, 250)
-            HomeCard(
-                description = "Total Revenue",
-                amount = state.revenueForYear,
-                color = homeCardColour,
-                onClick = { navigateTo(Routes.RECEIPT_LIST) }
-            )
-            HomeCard(
-                description = "Total Expenses",
-                amount = state.expensesForYear,
-                color = homeCardColour,
-                onClick = { navigateTo(Routes.PAYMENT_LIST) }
-            )
-            HomeCard(
-                description = "Net Income",
-                amount = state.incomeForYear,
-                color = homeCardColour
-            )
+            Column(
+                modifier = modifier.widthIn(max = 600.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 15.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    Icons.Default.ArrowBack,
-                    "See more",
-                    Modifier
-                        .padding(end = 10.dp)
-                        .clickable { decreaseYear(1) }
-                )
-                Text("${state.selectedYear}", fontWeight = FontWeight.Bold)
-                Icon(
-                    Icons.Default.ArrowForward,
-                    "See more",
-                    Modifier
-                        .padding(end = 10.dp)
-                        .clickable { increaseYear(1) }
-                )
-            }
 
-            Spacer(
-                modifier = Modifier.height(50.dp)
-            )
-            HomeCard(
-                description = "${state.currentMonth}'s Income",
-                amount = state.incomeForMonth,
-                color = homeCardColour
-            )
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 5.dp)
-                    .clickable { navigateTo(Routes.ADVANCED_STATS) },
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
-                color = homeCardColour,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-                //border = BorderStroke(
-                //    Dp.Hairline,
-                //    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
-                //),
-                tonalElevation = 2.dp,
-                //shadowElevation = 2.dp,
-            ) {
+                BusinessUsers(users = state.users, navigateTo = navigateTo)
+                Text(
+                    text = (stringResource(R.string.home_welcome) + " " + state.accountUser.fullName),
+                    modifier = Modifier.padding(5.dp),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.headlineSmall
+                )
+                val homeCardColour = MaterialTheme.colorScheme.surface //Color(160, 220, 255, 250)
+                HomeCard(
+                    description = "Total Revenue",
+                    amount = state.revenueForYear,
+                    color = homeCardColour,
+                    onClick = { navigateTo(Routes.RECEIPT_LIST) }
+                )
+                HomeCard(
+                    description = "Total Expenses",
+                    amount = state.expensesForYear,
+                    color = homeCardColour,
+                    onClick = { navigateTo(Routes.PAYMENT_LIST) }
+                )
+                HomeCard(
+                    description = "Net Income",
+                    amount = state.incomeForYear,
+                    color = homeCardColour
+                )
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 15.dp),
+                        .padding(horizontal = 20.dp, vertical = 15.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        "See Advanced Stats",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(horizontal = 10.dp)
-                    )
                     Icon(
-                        Icons.Default.ArrowForward,
+                        Icons.AutoMirrored.Filled.ArrowBack,
                         "See more",
-                        Modifier.padding(end = 10.dp)
+                        Modifier
+                            .padding(end = 10.dp)
+                            .clickable { decreaseYear(1) }
                     )
+                    Text("${state.selectedYear}", fontWeight = FontWeight.Bold)
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowForward,
+                        "See more",
+                        Modifier
+                            .padding(end = 10.dp)
+                            .clickable { increaseYear(1) }
+                    )
+                }
+
+                Spacer(
+                    modifier = Modifier.height(50.dp)
+                )
+                HomeCard(
+                    description = "${state.currentMonth}'s Income",
+                    amount = state.incomeForMonth,
+                    color = homeCardColour
+                )
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 5.dp)
+                        .clickable { navigateTo(Routes.ADVANCED_STATS) },
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
+                    color = homeCardColour,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    //border = BorderStroke(
+                    //    Dp.Hairline,
+                    //    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                    //),
+                    tonalElevation = 2.dp,
+                    //shadowElevation = 2.dp,
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 15.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "See Advanced Stats",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(horizontal = 10.dp)
+                        )
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowForward,
+                            "See more",
+                            Modifier.padding(end = 10.dp)
+                        )
+                    }
                 }
             }
         }
@@ -285,12 +291,16 @@ fun HomeCard(
         ) {
             Text(
                 description,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                ),
                 modifier = Modifier.padding(horizontal = 10.dp)
             )
             Text(
                 "$${decimalFormat.format(amount)}",
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    color = MaterialTheme.colorScheme.primary
+                ),
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(horizontal = 10.dp)
             )
@@ -298,9 +308,9 @@ fun HomeCard(
     }
 }
 
-@Preview
-@Preview(name = "Night Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Preview("Large Screen", device = Devices.PIXEL_C)
+@Preview(apiLevel = 33)
+@Preview(apiLevel = 33, name = "Night Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(apiLevel = 33, name = "Large Screen", device = Devices.PIXEL_C)
 @Composable
 fun TestHomeScreen() {
     AccountsTheme {

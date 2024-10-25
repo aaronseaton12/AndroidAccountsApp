@@ -9,7 +9,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
-import com.aaronseaton.accounts.util.Routes
 import com.aaronseaton.accounts.presentation.about.AboutScreen
 import com.aaronseaton.accounts.presentation.advancedstats.AdvancedStats
 import com.aaronseaton.accounts.presentation.business.AddBusiness
@@ -22,19 +21,22 @@ import com.aaronseaton.accounts.presentation.customer.IndividualCustomer
 import com.aaronseaton.accounts.presentation.customer.ListOfCustomers
 import com.aaronseaton.accounts.presentation.home.Home
 import com.aaronseaton.accounts.presentation.login.LoginOrHomeScreen
-import com.aaronseaton.accounts.presentation.payment.AddPayment
-import com.aaronseaton.accounts.presentation.payment.EditPayment
+import com.aaronseaton.accounts.presentation.matter.AddMatter
+import com.aaronseaton.accounts.presentation.matter.IndividualMatter
+import com.aaronseaton.accounts.presentation.matter.ListOfMatters
+import com.aaronseaton.accounts.presentation.payment.AddOrEditPayment
 import com.aaronseaton.accounts.presentation.payment.IndividualPayment
 import com.aaronseaton.accounts.presentation.payment.ListOfPayments
-import com.aaronseaton.accounts.presentation.receipt.AddReceipt
-import com.aaronseaton.accounts.presentation.receipt.EditReceipt
+import com.aaronseaton.accounts.presentation.receipt.AddOrEditReceipt
 import com.aaronseaton.accounts.presentation.receipt.IndividualReceipt
 import com.aaronseaton.accounts.presentation.receipt.ListOfReceipts
 import com.aaronseaton.accounts.presentation.task.AddTask
-import com.aaronseaton.accounts.presentation.task.IndividualTask
 import com.aaronseaton.accounts.presentation.task.ListOfTasks
+import com.aaronseaton.accounts.presentation.task.IndividualTask
 import com.aaronseaton.accounts.presentation.user.EditUser
 import com.aaronseaton.accounts.presentation.user.IndividualUser
+import com.aaronseaton.accounts.presentation.transaction.TransactionScreen
+import com.aaronseaton.accounts.util.Routes
 
 private const val TAG = "NavGraph"
 
@@ -78,14 +80,12 @@ fun SetupNavGraph(
         composable(Routes.CUSTOMER_LIST) {
             ListOfCustomers(
                 navigateTo = navigateToPopUp,
-                //viewModel = customerViewModels
             )
         }
         composable(Routes.ADD_CUSTOMER) {
             AddCustomer(
                 navigateTo = navigateTo,
                 popBackStack = popBackStack,
-                //viewModel = customerViewModels
             )
         }
         composable(
@@ -99,7 +99,6 @@ fun SetupNavGraph(
             IndividualCustomer(
                 customerID = (it.arguments?.getString("customerID"))!!,
                 navigateTo = navigateTo,
-                //viewModel = customerViewModels
             )
         }
         composable(
@@ -113,7 +112,6 @@ fun SetupNavGraph(
                 navigateTo = navigateTo,
                 popBackStack = popBackStack,
                 customerID = (it.arguments?.getString("customerID"))!!,
-                //viewModel = customerViewModels
             )
         }
 
@@ -123,10 +121,7 @@ fun SetupNavGraph(
             })
         ) {
             ListOfPayments(
-                //navController = navController,
                 navigateTo = navigateToPopUp,
-                //viewModel = paymentViewModel
-
             )
         }
         composable(
@@ -136,11 +131,9 @@ fun SetupNavGraph(
                 nullable = false
             })
         ) {
-            AddPayment(
-                //popBackStack = popBackStack,
+            AddOrEditPayment(
                 customerID = (it.arguments?.getString("customerID")),
                 navigateTo = navigateTo,
-                //viewModel = paymentViewModel
             )
         }
         composable(
@@ -154,7 +147,6 @@ fun SetupNavGraph(
                 navigateTo = navigateTo,
                 popBackStack = popBackStack,
                 paymentID = (it.arguments?.getString("paymentID"))!!,
-                //viewModel = paymentViewModel
             )
         }
         composable(
@@ -164,18 +156,14 @@ fun SetupNavGraph(
                 nullable = false
             })
         ) {
-            EditPayment(
+            AddOrEditPayment(
                 navigateTo = navigateTo,
-                popBackStack = popBackStack,
                 paymentID = (it.arguments?.getString("paymentID"))!!,
-                //viewModel = paymentViewModel
             )
         }
-
         composable(Routes.RECEIPT_LIST) {
             ListOfReceipts(
                 navigateTo = navigateToPopUp,
-                //viewModel = receiptViewModel
             )
         }
         composable(
@@ -185,10 +173,9 @@ fun SetupNavGraph(
                 nullable = false
             })
         ) {
-            AddReceipt(
+            AddOrEditReceipt(
                 navigateTo = navigateTo,
                 customerID = (it.arguments?.getString("customerID")),
-                //viewModel = receiptViewModel
             )
         }
         composable(
@@ -201,7 +188,6 @@ fun SetupNavGraph(
                 navigateTo = navigateTo,
                 popBackStack = popBackStack,
                 receiptID = (it.arguments?.getString("receiptID"))!!,
-                //viewModel = receiptViewModel
             )
         }
         composable(
@@ -210,11 +196,9 @@ fun SetupNavGraph(
                 nullable = false
             })
         ) {
-            EditReceipt(
+            AddOrEditReceipt(
                 navigateTo = navigateTo,
-                popBackStack = popBackStack,
                 receiptID = (it.arguments?.getString("receiptID"))!!,
-                //viewModel = receiptViewModel
             )
         }
         composable(
@@ -284,10 +268,6 @@ fun SetupNavGraph(
                     type = NavType.StringType
                     nullable = false
                 },
-//                navArgument("businessID"){
-//                    type = NavType.StringType
-//                    nullable = true
-//                }
             ), deepLinks = listOf(navDeepLink {
                 this.uriPattern = "$route/task/{taskID}"
             })
@@ -301,7 +281,8 @@ fun SetupNavGraph(
             route = Routes.ADD_TASK
         ) {
             AddTask(
-                navigateTo = navigateTo, popBackStack = popBackStack
+                navigateTo = navigateTo,
+                popBackStack = popBackStack
             )
         }
         composable(
@@ -314,6 +295,45 @@ fun SetupNavGraph(
                 navigateTo = navigateToPopUp
             )
         }
+
+        composable(
+            route = Routes.INDIVIDUAL_MATTER + "/" + "{matterID}", arguments = listOf(
+                navArgument("matterID") {
+                    type = NavType.StringType
+                    nullable = false
+                },
+            ), deepLinks = listOf(navDeepLink {
+                this.uriPattern = "$route/matter/{matterID}"
+            })
+        ) {
+            IndividualMatter(
+                navigateTo = navigateTo,
+                matterID = (it.arguments?.getString("matterID"))!!,
+            )
+        }
+        composable(
+            route = Routes.ADD_MATTER
+        ) {
+            AddMatter(
+                navigateTo = navigateTo, popBackStack = popBackStack
+            )
+        }
+        composable(
+            route = Routes.MATTER_LIST, deepLinks = listOf(navDeepLink {
+                uriPattern = "$route/matter_list"
+            })
+        ) {
+            Log.d(TAG, Routes.MATTER_LIST)
+            ListOfMatters(
+                navigateTo = navigateToPopUp
+            )
+        }
+        composable(
+            route = Routes.TRANSACTION_SCREEN) {
+            Log.d(TAG, Routes.MATTER_LIST)
+            TransactionScreen(
+                navigateTo = navigateTo
+            )
+        }
     }
 }
-

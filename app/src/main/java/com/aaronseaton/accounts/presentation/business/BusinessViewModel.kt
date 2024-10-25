@@ -10,30 +10,42 @@ import com.aaronseaton.accounts.domain.model.Business
 import com.aaronseaton.accounts.domain.model.Response
 import com.aaronseaton.accounts.domain.model.User
 import com.aaronseaton.accounts.domain.repository.EntityRepo
+import com.aaronseaton.accounts.domain.repository.RepoGroup
 import com.aaronseaton.accounts.domain.repository.ProfileImageRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 
 class BusinessViewModel @Inject constructor(
-    private val accountUser: User,
-    private val userRepo: EntityRepo<User>,
-    private val businessRepo: EntityRepo<Business>,
+    private val repoGroup: RepoGroup,
     private val repo: ProfileImageRepository
 ) : ViewModel() {
-    private val _businessListState = MutableStateFlow(BusinessListState(loading = true))
-    val businessListState: StateFlow<BusinessListState> = _businessListState.asStateFlow()
 
-    private val _individualBusinessState = MutableStateFlow(IndividualBusinessState(loading = true))
-    val individualBusinessState: StateFlow<IndividualBusinessState> =
-        _individualBusinessState.asStateFlow()
+    private var businessRepo: EntityRepo<Business>? = null
+    private var businessID: String? = null
+    fun setBusinessId(businessID: String?) {this.businessID = businessID}
+
+    val state = repoGroup.repos.map { repos ->
+        businessRepo = repos.business
+        BusinessListState(
+            repos.business.list(),
+            loading = false
+        )
+    }
+    val individualState = repoGroup.repos.map { repos ->
+        businessRepo = repos.business
+        val business = if(businessID==null)Business() else repos.business.get(businessID!!)
+        IndividualBusinessState(
+            business = business,
+            accountUser = repos.accountUser,
+            users = repos.user.list().filter { business.members.contains(it.documentID) },
+            loading = false
+        )
+    }
+
 
     var addImageToStorageResponse by mutableStateOf<Response<Uri>>(Response.Success(null))
         private set
@@ -63,61 +75,14 @@ class BusinessViewModel @Inject constructor(
         }
     }
 
-    init {
-        refreshList()
-        refreshIndividual()
-    }
 
-    private fun refreshIndividual() = viewModelScope.launch {
-        val accountUser = accountUser
-        _individualBusinessState.update {
-            it.copy(
-                accountUser = accountUser,
-                loading = false
-            )
-        }
-    }
-
-    fun getBusiness(businessID: String) = viewModelScope.launch {
-        val business = businessRepo.get(businessID)
-        _individualBusinessState.update {
-            it.copy(
-                business = business
-            )
-        }
-        userRepo.liveList().map {
-            it.filter { user -> business.members.contains(user.documentID) }
-        }.collect { users ->
-            _individualBusinessState.update {
-                it.copy(
-                    users = users,
-                    loading = false
-                )
-            }
-        }
-    }
-
-
-    private fun refreshList() = viewModelScope.launch {
-        val user = accountUser
-        businessRepo.liveList()
-            .map { it.filter { business -> business.members.contains(user.documentID) } }
-            .collect { businesses ->
-                _businessListState.update {
-                    it.copy(
-                        businesses = businesses,
-                        loading = false
-                    )
-                }
-            }
-    }
 
     fun updateBusiness(business: Business) = viewModelScope.launch {
-        businessRepo.update(business.documentID, business)
+        businessRepo?.update(business.documentID, business)
     }
 
     fun insertBusiness(business: Business) = viewModelScope.launch {
-        businessRepo.add(business)
+        businessRepo?.add(business)
     }
 }
 
@@ -125,10 +90,10 @@ data class IndividualBusinessState(
     val accountUser: User = User(),
     val users: List<User> = listOf(User()),
     val business: Business = Business(),
-    val loading: Boolean = false
+    val loading: Boolean = true
 )
 
 data class BusinessListState(
     val businesses: List<Business> = listOf(Business()),
-    val loading: Boolean = false
+    val loading: Boolean = true
 )

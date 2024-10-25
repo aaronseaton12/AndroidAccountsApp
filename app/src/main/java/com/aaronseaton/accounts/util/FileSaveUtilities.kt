@@ -11,6 +11,7 @@ import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.graphics.pdf.PdfDocument
 import android.net.Uri
+import android.print.PageRange
 import android.print.PdfPrint
 import android.print.PrintAttributes
 import android.print.pdf.PrintedPdfDocument
@@ -37,13 +38,14 @@ fun saveHTMLAsPDF(
     context: Context,
     htmlString: String,
     fileLocation: File,
+    onFinish: (pages:Array<PageRange>) -> Unit = {}
 ){
     val webView = WebView(context)
     webView.webViewClient = object : WebViewClient() {
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest) = false
         override fun onPageFinished(view: WebView, url: String) {
             Log.i(TAG, "page finished loading $url")
-            webviewToPdf(webView, fileLocation)
+            webviewToPdf(webView, fileLocation, onFinish)
         }
     }
     webView.loadDataWithBaseURL(null, htmlString, "text/HTML", "UTF-8", null)
@@ -52,6 +54,7 @@ fun saveHTMLAsPDF(
 private fun webviewToPdf(
     webView: WebView,
     fileLocation: File,
+    onFinish: (pages: Array<PageRange>) -> Unit = {},
 ) {
     val vMargin = 0
     val hMargin = 0
@@ -62,7 +65,7 @@ private fun webviewToPdf(
         .build()
     val printer = PdfPrint(attributes)
     val printAdapter = webView.createPrintDocumentAdapter(fileLocation.name)
-    printer.print(printAdapter, fileLocation)
+    printer.print(printAdapter, fileLocation, onFinish)
 }
 
 fun screenshot(

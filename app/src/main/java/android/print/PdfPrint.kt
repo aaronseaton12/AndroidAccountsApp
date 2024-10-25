@@ -8,7 +8,7 @@ import android.util.Log
 import java.io.File
 
 class PdfPrint(private val printAttributes: PrintAttributes) {
-    fun print(printAdapter: PrintDocumentAdapter, file: File) {
+    fun print(printAdapter: PrintDocumentAdapter, file: File, onFinish: (pages: Array<PageRange>) -> Unit = {}) {
         printAdapter.onLayout(null, printAttributes, null, object : LayoutResultCallback() {
             override fun onLayoutFinished(info: PrintDocumentInfo, changed: Boolean) {
                 printAdapter.onWrite(
@@ -17,7 +17,7 @@ class PdfPrint(private val printAttributes: PrintAttributes) {
                     CancellationSignal(),
                     object : WriteResultCallback() {
                         override fun onWriteFinished(pages: Array<PageRange>) {
-                            super.onWriteFinished(pages)
+                            onFinish(pages)
                         }
                     }
                 )

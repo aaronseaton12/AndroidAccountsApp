@@ -58,7 +58,7 @@ dependencies {
     ksp ("androidx.hilt:hilt-compiler:1.2.0")
     implementation ("androidx.hilt:hilt-navigation-compose:1.2.0")
 
-    implementation (platform("com.google.firebase:firebase-bom:33.4.0"))
+    implementation (platform("com.google.firebase:firebase-bom:33.5.1"))
     implementation ("com.google.firebase:firebase-auth")
     implementation ("com.google.firebase:firebase-auth-ktx")
     implementation ("com.google.firebase:firebase-analytics-ktx")
@@ -68,6 +68,7 @@ dependencies {
     implementation ("com.google.firebase:firebase-messaging-ktx")
     implementation ("com.google.android.gms:play-services-auth:21.2.0")
     implementation ("com.karumi:dexter:6.0.0")
+    implementation(kotlin("reflect"))
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
     testImplementation(libs.junit)

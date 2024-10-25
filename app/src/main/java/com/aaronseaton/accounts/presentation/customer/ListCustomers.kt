@@ -15,7 +15,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.aaronseaton.accounts.domain.model.Customer
-import com.aaronseaton.accounts.domain.model.CustomerSorting
+import com.aaronseaton.accounts.domain.model.Sorting
 import com.aaronseaton.accounts.util.Routes
 import com.aaronseaton.accounts.util.SearchWidgetState
 import com.aaronseaton.accounts.presentation.components.AllBottomBar
@@ -26,7 +26,8 @@ fun ListOfCustomers(
     navigateTo: (String) -> Unit = {},
     viewModel: CustomerViewModels = hiltViewModel(),
 ) {
-    val state by viewModel.customerListState.collectAsState()
+    val state by viewModel.customerListState.collectAsState(CustomerListState(loading = true))
+    val searchBar by viewModel.searchBar.collectAsState(CustomerListState(loading = true))
     "List Of Customers".also { println(it) }
     ListCustomersImpl(
         viewModel::onQueryChange,
@@ -34,27 +35,26 @@ fun ListOfCustomers(
         viewModel::onOpenClicked,
         viewModel::changeSorting,
         navigateTo,
-        state.searchState,
+        searchBar.searchState,
         state.customers,
-        state.query,
+        searchBar.query,
         state.loading,
-        state.sorting
+        searchBar.sorting
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListCustomersImpl(
     onQueryChange: (String) -> Unit,
     onCloseClicked: () -> Unit,
     onOpenClicked: () -> Unit,
-    changeSorting: (CustomerSorting) -> Unit = {},
+    changeSorting: (Sorting.CustomerSorting) -> Unit = {},
     navigateTo: (String) -> Unit,
     searchState: SearchWidgetState,
     customers: List<Customer>,
     query: String,
     loading: Boolean,
-    sorting: CustomerSorting,
+    sorting: Sorting.CustomerSorting,
 
     ) {
     val fabIcon = Icons.Default.Add
@@ -99,7 +99,7 @@ fun ListCustomersImpl(
 fun OutputArea(
     customers: List<Customer>,
     navigateTo: (String) -> Unit = {},
-    sorting: CustomerSorting,
+    sorting: Sorting.CustomerSorting,
     query: String,
     modifier: Modifier
 ) {
@@ -110,9 +110,9 @@ fun OutputArea(
         )
     }
     val filteredSortedCustomers = when (sorting) {
-        CustomerSorting.BY_CUSTOMER_ID -> filteredCustomers.sortedBy { it.customerID }
-        CustomerSorting.BY_FIRST_NAME -> filteredCustomers.sortedBy { it.firstName }
-        CustomerSorting.BY_LAST_NAME -> filteredCustomers.sortedBy { it.lastName }
+        Sorting.CustomerSorting.BY_CUSTOMER_ID -> filteredCustomers.sortedBy { it.customerID }
+        Sorting.CustomerSorting.BY_FIRST_NAME -> filteredCustomers.sortedBy { it.firstName }
+        Sorting.CustomerSorting.BY_LAST_NAME -> filteredCustomers.sortedBy { it.lastName }
         //else -> filteredCustomers
     }
     if (filteredCustomers.isEmpty()) {
@@ -135,7 +135,7 @@ fun MainAppBar(
     onCloseClicked: () -> Unit,
     onSearchClicked: (String) -> Unit,
     onSearchTriggered: () -> Unit,
-    changeSorting: (CustomerSorting) -> Unit = {}
+    changeSorting: (Sorting.CustomerSorting) -> Unit = {}
 ) {
     when (searchWidgetState) {
         SearchWidgetState.CLOSED -> {
@@ -161,7 +161,7 @@ fun MainAppBar(
 fun DefaultAppBar(
     navigateTo: (String) -> Unit = {},
     onSearchClicked: () -> Unit,
-    changeSorting: (CustomerSorting) -> Unit = {}
+    changeSorting: (Sorting.CustomerSorting) -> Unit = {}
 ) {
     val onPressed = { navigateTo(Routes.HOME) }
     val icon = Icons.Filled.ArrowBack
@@ -196,19 +196,19 @@ fun DefaultAppBar(
                         text = {
                             Text("Sort By First Name")
                         },
-                        onClick = { changeSorting(CustomerSorting.BY_FIRST_NAME) }
+                        onClick = { changeSorting(Sorting.CustomerSorting.BY_FIRST_NAME) }
                     )
                     DropdownMenuItem(
                         text = {
                             Text("Sort By Last Name")
                         },
-                        onClick = { changeSorting(CustomerSorting.BY_LAST_NAME) }
+                        onClick = { changeSorting(Sorting.CustomerSorting.BY_LAST_NAME) }
                     )
                     DropdownMenuItem(
                         text = {
                             Text("Sort By Contact ID")
                         },
-                        onClick = { changeSorting(CustomerSorting.BY_CUSTOMER_ID) }
+                        onClick = { changeSorting(Sorting.CustomerSorting.BY_CUSTOMER_ID) }
                     )
                 }
             }
